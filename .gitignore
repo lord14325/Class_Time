@@ -10,3 +10,9 @@ build/
 .idea/
 *.tmp
 *.temp
+
+# Exclude SQL files and scheduling-related files
+*.sql
+backend/routes/scheduling.js
+frontend/src/Pages/AdminScheduling.jsx
+frontend/src/Pages/Schedule.jsx

@@ -12,9 +12,8 @@ function Course() {
     course_code: "",
     course_name: "",
     description: "",
-    credits: "",
-    department: "",
-    is_active: true,
+    subject: "",
+    grade_level: "",
   });
 
   useEffect(() => {
@@ -45,9 +44,8 @@ function Course() {
       course_code: formData.course_code,
       course_name: formData.course_name,
       description: formData.description,
-      credits: parseInt(formData.credits),
-      department: formData.department,
-      is_active: formData.is_active,
+      subject: formData.subject,
+      grade_level: formData.grade_level,
     };
 
     try {
@@ -78,7 +76,7 @@ function Course() {
       fetchCourses(); // Refresh the data
       setShowForm(false);
       setEditingCourse(null);
-      setFormData({ course_code: "", course_name: "", description: "", credits: "", department: "", is_active: true });
+      setFormData({ course_code: "", course_name: "", description: "", subject: "", grade_level: "" });
     } catch (err) {
       console.error("Error saving course:", err);
       setError(err.message);
@@ -106,23 +104,22 @@ function Course() {
       course_code: course.course_code,
       course_name: course.course_name,
       description: course.description || '',
-      credits: course.credits,
-      department: course.department,
-      is_active: course.is_active,
+      subject: course.subject,
+      grade_level: course.grade_level,
     });
     setShowForm(true);
   };
 
   const handleOpenAdd = () => {
-    setEditingCourse(null); 
-    setFormData({ course_code: "", course_name: "", description: "", credits: "", department: "", is_active: true }); 
+    setEditingCourse(null);
+    setFormData({ course_code: "", course_name: "", description: "", subject: "", grade_level: "" });
     setShowForm(true);
   };
 
   const handleCancel = () => {
     setShowForm(false);
     setEditingCourse(null);
-    setFormData({ course_code: "", course_name: "", description: "", credits: "", department: "", is_active: true }); // clear form
+    setFormData({ course_code: "", course_name: "", description: "", subject: "", grade_level: "" }); // clear form
   };
 
   return (
@@ -142,8 +139,8 @@ function Course() {
             <tr>
               <th>Course Code</th>
               <th>Course Name</th>
-              <th>Department</th>
-              <th>Credits</th>
+              <th>Subject</th>
+              <th>Grade Level</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -152,8 +149,8 @@ function Course() {
               <tr key={course.id}>
                 <td>{course.course_code}</td>
                 <td>{course.course_name}</td>
-                <td>{course.department}</td>
-                <td>{course.credits}</td>
+                <td>{course.subject}</td>
+                <td>{course.grade_level}</td>
               <td>
                 <button className="edit" onClick={() => handleEdit(course)}>Edit</button>{" "}
                 |{" "}
@@ -189,24 +186,23 @@ function Course() {
                   required
                 />
 
-                <label>Department*</label>
+                <label>Subject*</label>
                 <input
-                  name="department"
+                  name="subject"
                   type="text"
-                  placeholder="e.g., Computer Science"
-                  value={formData.department}
-                  onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                  placeholder="e.g., Mathematics, Science"
+                  value={formData.subject}
+                  onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                   required
                 />
 
-                <label>Credits*</label>
+                <label>Grade Level*</label>
                 <input
-                  name="credits"
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={formData.credits}
-                  onChange={(e) => setFormData({ ...formData, credits: e.target.value })}
+                  name="grade_level"
+                  type="text"
+                  placeholder="e.g., Grade 9, Grade 10"
+                  value={formData.grade_level}
+                  onChange={(e) => setFormData({ ...formData, grade_level: e.target.value })}
                   required
                 />
 
@@ -218,15 +214,6 @@ function Course() {
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows="3"
                 ></textarea>
-
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={formData.is_active}
-                    onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                  />
-                  Active Course
-                </label>
               <div className="modal-actions">
                 <button type="button" className="btn cancel" onClick={handleCancel}>Cancel</button>                
                 <button type="submit" className="btn">Save</button>

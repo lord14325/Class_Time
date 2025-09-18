@@ -22,6 +22,7 @@ app.use("/api/courses", require("./routes/courses"));
 app.use("/api/class-sections", require("./routes/class_sections"));
 app.use("/api/announcements", require("./routes/announcements"));
 app.use("/api/schedules", require("./routes/schedules"));
+app.use("/api/scheduling", require("./routes/scheduling"));
 
 app.use('*', (req, res) => {
   res.status(404).json({ message: 'Route not found' });

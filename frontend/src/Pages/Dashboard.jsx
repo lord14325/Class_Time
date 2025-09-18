@@ -70,7 +70,7 @@ function Dashboard() {
           <ul>
             <li><Link to="/teacher">Add Teacher</Link></li>
             <li><Link to="/class-sections">Manage Class Sections</Link></li>
-            <li><Link to="/schedule">Create Schedule</Link></li>
+            <li><Link to="/schedule">Admin Scheduling</Link></li>
             <li><Link to="/announcements">Add Announcement</Link></li>
           </ul>
         </section>

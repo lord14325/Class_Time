@@ -10,8 +10,8 @@ import Teacher from './Pages/Teacher';
 import Student from './Pages/Student';
 import Course from './Pages/Course';
 import ClassSections from './Pages/ClassSections';
-import Schedule from './Pages/Schedule';
 import Announcements from '../src/Pages/Announcements';
+import AdminScheduling from './Pages/AdminScheduling';
 
 function App() {
   return (
@@ -26,7 +26,8 @@ function App() {
       <Route path="/student" element={<Student />} />
       <Route path="/course" element={<Course />} />
       <Route path="/class-sections" element={<ClassSections />} />
-      <Route path="/schedule" element={<Schedule />} />
+      <Route path="/schedule" element={<AdminScheduling />} />
+      <Route path="/admin-scheduling" element={<AdminScheduling />} />
       <Route path="/announcements" element={<Announcements />} />
     </Routes>
   );

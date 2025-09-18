@@ -5,7 +5,7 @@ const pool = require("../db");
 router.get("/", async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT t.id, t.employee_id, t.department, t.phone, t.hire_date, t.specialization, t.created_at,
+      SELECT t.id, t.employee_id, t.phone, t.subject, t.created_at,
              u.name, u.email
       FROM teachers t
       JOIN users u ON t.user_id = u.id
@@ -22,7 +22,7 @@ router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const result = await pool.query(`
-      SELECT t.id, t.employee_id, t.department, t.phone, t.hire_date, t.specialization, t.created_at,
+      SELECT t.id, t.employee_id, t.phone, t.subject, t.created_at,
              u.name, u.email, u.role
       FROM teachers t
       JOIN users u ON t.user_id = u.id
@@ -49,14 +49,12 @@ router.post("/", async (req, res) => {
       password,
       phone,
       employee_id,
-      department,
-      specialization,
-      hire_date
+      subject
     } = req.body;
 
-    if (!name || !email || !username || !password || !employee_id || !department || !phone || !specialization || !hire_date) {
+    if (!name || !email || !username || !password || !employee_id || !phone || !subject) {
       return res.status(400).json({
-        message: "All fields are required: name, email, username, password, employee_id, department, phone, specialization, and hire_date"
+        message: "All fields are required: name, email, username, password, employee_id, phone, and subject"
       });
     }
 
@@ -69,10 +67,10 @@ router.post("/", async (req, res) => {
     const userId = userResult.rows[0].id;
 
     const teacherResult = await pool.query(`
-      INSERT INTO teachers (user_id, employee_id, department, phone, hire_date, specialization, created_at)
-      VALUES ($1, $2, $3, $4, $5, $6, NOW())
+      INSERT INTO teachers (user_id, employee_id, phone, subject, created_at)
+      VALUES ($1, $2, $3, $4, NOW())
       RETURNING *
-    `, [userId, employee_id, department, phone, hire_date, specialization]);
+    `, [userId, employee_id, phone, subject]);
 
     const newTeacher = {
       ...teacherResult.rows[0],
@@ -102,9 +100,7 @@ router.put("/:id", async (req, res) => {
       password,
       phone,
       employee_id,
-      department,
-      specialization,
-      hire_date
+      subject
     } = req.body;
 
     const teacherCheck = await pool.query('SELECT user_id FROM teachers WHERE id = $1', [id]);
@@ -123,12 +119,12 @@ router.put("/:id", async (req, res) => {
 
     await pool.query(`
       UPDATE teachers
-      SET employee_id = $1, department = $2, phone = $3, specialization = $4
-      WHERE id = $5
-    `, [employee_id, department, phone, specialization || null, id]);
+      SET employee_id = $1, phone = $2, subject = $3
+      WHERE id = $4
+    `, [employee_id, phone, subject || null, id]);
 
     const result = await pool.query(`
-      SELECT t.id, t.employee_id, t.department, t.phone, t.hire_date, t.specialization, t.created_at,
+      SELECT t.id, t.employee_id, t.phone, t.subject, t.created_at,
              u.name, u.email
       FROM teachers t
       JOIN users u ON t.user_id = u.id

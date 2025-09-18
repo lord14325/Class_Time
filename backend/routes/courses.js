@@ -11,9 +11,8 @@ router.get("/", async (req, res) => {
         course_code,
         course_name,
         description,
-        credits,
-        department,
-        is_active,
+        subject,
+        grade_level,
         created_at
       FROM courses
       ORDER BY course_code ASC
@@ -33,26 +32,24 @@ router.post("/", async (req, res) => {
       course_code,
       course_name,
       description,
-      credits,
-      department,
-      is_active
+      subject,
+      grade_level
     } = req.body;
 
-    if (!course_code || !course_name || !department) {
-      return res.status(400).json({ message: "Course code, name, and department are required" });
+    if (!course_code || !course_name || !subject) {
+      return res.status(400).json({ message: "Course code, name, and subject are required" });
     }
 
     const result = await pool.query(`
-      INSERT INTO courses (course_code, course_name, description, credits, department, is_active, created_at)
-      VALUES ($1, $2, $3, $4, $5, $6, NOW())
-      RETURNING id, course_code, course_name, description, credits, department, is_active, created_at
+      INSERT INTO courses (course_code, course_name, description, subject, grade_level, created_at)
+      VALUES ($1, $2, $3, $4, $5, NOW())
+      RETURNING id, course_code, course_name, description, subject, grade_level, created_at
     `, [
       course_code,
       course_name,
       description,
-      credits || 3,
-      department,
-      is_active !== undefined ? is_active : true
+      subject,
+      grade_level
     ]);
 
     res.status(201).json({
@@ -73,13 +70,12 @@ router.put("/:id", async (req, res) => {
       course_code,
       course_name,
       description,
-      credits,
-      department,
-      is_active
+      subject,
+      grade_level
     } = req.body;
 
-    if (!course_code || !course_name || !department) {
-      return res.status(400).json({ message: "Course code, name, and department are required" });
+    if (!course_code || !course_name || !subject) {
+      return res.status(400).json({ message: "Course code, name, and subject are required" });
     }
 
     const courseExists = await pool.query('SELECT id FROM courses WHERE id = $1', [id]);
@@ -93,18 +89,16 @@ router.put("/:id", async (req, res) => {
         course_code = $1,
         course_name = $2,
         description = $3,
-        credits = $4,
-        department = $5,
-        is_active = $6
-      WHERE id = $7
-      RETURNING id, course_code, course_name, description, credits, department, is_active, created_at
+        subject = $4,
+        grade_level = $5
+      WHERE id = $6
+      RETURNING id, course_code, course_name, description, subject, grade_level, created_at
     `, [
       course_code,
       course_name,
       description,
-      credits || 3,
-      department,
-      is_active !== undefined ? is_active : true,
+      subject,
+      grade_level,
       id
     ]);
 

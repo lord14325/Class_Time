@@ -16,9 +16,7 @@ function Teacher() {
     password: "",
     phone: "",
     employee_id: "",
-    department: "",
-    specialization: "",
-    hire_date: "",
+    subject: "",
   });
 
   useEffect(() => {
@@ -84,9 +82,7 @@ function Teacher() {
         password: "",
         phone: "",
         employee_id: "",
-        department: "",
-        specialization: "",
-        hire_date: "",
+        subject: "",
       });
     } catch (err) {
       console.error("Error saving teacher:", err);
@@ -123,9 +119,7 @@ function Teacher() {
       password: "",
       phone: teacherToEdit.phone || "",
       employee_id: teacherToEdit.employee_id || "",
-      department: teacherToEdit.department || "",
-      specialization: teacherToEdit.specialization || "",
-      hire_date: teacherToEdit.hire_date ? teacherToEdit.hire_date.split('T')[0] : "",
+      subject: teacherToEdit.subject || "",
     });
     setShowForm(true);
   };
@@ -139,9 +133,7 @@ function Teacher() {
       password: "",
       phone: "",
       employee_id: "",
-      department: "",
-      specialization: "",
-      hire_date: "",
+      subject: "",
     });
     setShowForm(true);
   };
@@ -157,9 +149,7 @@ function Teacher() {
       password: "",
       phone: "",
       employee_id: "",
-      department: "",
-      specialization: "",
-      hire_date: "",
+      subject: "",
     });
   };
 
@@ -180,7 +170,7 @@ function Teacher() {
               <tr>
                 <th>Employee ID</th>
                 <th>Name</th>
-                <th>Department</th>
+                <th>Subject</th>
                 <th>Email</th>
                 <th>Phone</th>
                 {/* <th>Specialization</th> */}
@@ -192,7 +182,7 @@ function Teacher() {
                 <tr key={t.id}>
                   <td>{t.employee_id}</td>
                   <td>{t.name}</td>
-                  <td>{t.department}</td>
+                  <td>{t.subject}</td>
                   <td>{t.email}</td>
                   <td>{t.phone}</td>
                   {/* <td>{t.specialization}</td> */}
@@ -268,16 +258,6 @@ function Teacher() {
                   />
                 </div>
                 <div className="form-group">
-                  <label>Department*</label>
-                  <input
-                    name="department"
-                    type="text"
-                    value={formData.department}
-                    onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="form-group">
                   <label>Phone*</label>
                   <input
                     name="phone"
@@ -288,27 +268,15 @@ function Teacher() {
                   />
                 </div>
                 <div className="form-group">
-                  <label>Specialization*</label>
+                  <label>Subject*</label>
                   <input
-                    name="specialization"
+                    name="subject"
                     type="text"
-                    value={formData.specialization}
-                    onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
+                    value={formData.subject}
+                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                     required
                   />
                 </div>
-                {!editingTeacher && (
-                  <div className="form-group">
-                    <label>Hire Date*</label>
-                    <input
-                      name="hire_date"
-                      type="date"
-                      value={formData.hire_date}
-                      onChange={(e) => setFormData({ ...formData, hire_date: e.target.value })}
-                      required
-                    />
-                  </div>
-                )}
               </div>
               <div className="modal-actions">
                 <button type="button" className="btn cancel" onClick={handleCancel}>Cancel</button>                
