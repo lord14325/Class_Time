@@ -19,9 +19,7 @@ function Dashboard() {
           throw new Error('Failed to fetch dashboard stats');
         }
         const data = await response.json();
-        
-        // Transform backend data to match frontend format
-        const statsArray = [
+                const statsArray = [
           { title: "Total Teachers", value: data.totalTeachers },
           { title: "Total Students", value: data.totalStudents },
           { title: "Total Classes", value: data.totalClasses },
@@ -33,7 +31,6 @@ function Dashboard() {
       } catch (err) {
         console.error("Error fetching dashboard stats:", err);
         setError(err.message);
-        // Fallback to dummy data
         setStats([
           { title: "Total Teachers", value: 0 },
           { title: "Total Students", value: 0 },
@@ -72,6 +69,7 @@ function Dashboard() {
           <h2>Quick Actions</h2>
           <ul>
             <li><Link to="/teacher">Add Teacher</Link></li>
+            <li><Link to="/class-sections">Manage Class Sections</Link></li>
             <li><Link to="/schedule">Create Schedule</Link></li>
             <li><Link to="/announcements">Add Announcement</Link></li>
           </ul>

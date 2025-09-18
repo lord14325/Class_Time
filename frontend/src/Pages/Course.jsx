@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Layout from "../component/Layout";
 
-// import "../styles/course.css";
 
 function Course() {
   const [course, setCourse] = useState([]);
@@ -145,7 +144,6 @@ function Course() {
               <th>Course Name</th>
               <th>Department</th>
               <th>Credits</th>
-              {/* <th>Status</th> */}
               <th>Action</th>
             </tr>
           </thead>
@@ -156,11 +154,6 @@ function Course() {
                 <td>{course.course_name}</td>
                 <td>{course.department}</td>
                 <td>{course.credits}</td>
-                {/* <td>
-                  <span className={`status-badge ${course.is_active ? "active" : "inactive"}`}>
-                    {course.is_active ? "Active" : "Inactive"}
-                  </span>
-                </td> */}
               <td>
                 <button className="edit" onClick={() => handleEdit(course)}>Edit</button>{" "}
                 |{" "}

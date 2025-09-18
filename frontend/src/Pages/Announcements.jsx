@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Layout from "../component/Layout";
 
-// import "../styles/announcements.css";
-
-
-
 function Announcements() {
   const [announcement, setAnnouncement] = useState([]);
   const [loading, setLoading] = useState(true);

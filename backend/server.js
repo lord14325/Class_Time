@@ -4,6 +4,8 @@ const cors = require("cors");
 
 dotenv.config();
 
+const pool = require("./db");
+
 const app = express();
 
 app.use(cors());
@@ -17,7 +19,9 @@ app.use("/api/teachers", require("./routes/teachers"));
 app.use("/api/students", require("./routes/students"));
 app.use("/api/rooms", require("./routes/rooms"));
 app.use("/api/courses", require("./routes/courses"));
+app.use("/api/class-sections", require("./routes/class_sections"));
 app.use("/api/announcements", require("./routes/announcements"));
+app.use("/api/schedules", require("./routes/schedules"));
 
 app.use('*', (req, res) => {
   res.status(404).json({ message: 'Route not found' });
