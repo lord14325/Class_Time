@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from "react";
 import Layout from "../component/Layout";
-
 import "../styles/styles.css";
 
 function Teacher() {
   const [teacher, setTeacher] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingTeacher, setEditingTeacher] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -24,92 +21,36 @@ function Teacher() {
   }, []);
 
   const fetchTeachers = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch("http://localhost:5000/api/teachers");
-      if (!response.ok) {
-        throw new Error('Failed to fetch teachers');
-      }
-      const data = await response.json();
-      setTeacher(data);
-    } catch (err) {
-      console.error("Error fetching teachers:", err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+    const response = await fetch("http://localhost:5000/api/teachers");
+    const data = await response.json();
+    setTeacher(data);
   };
 
-  const handleAddTeacher = async (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
-    
-    try {
-      setLoading(true);
-      const url = editingTeacher 
-        ? `http://localhost:5000/api/teachers/${editingTeacher.id}`
-        : "http://localhost:5000/api/teachers";
-      
-      const method = editingTeacher ? "PUT" : "POST";
-      
-      const response = await fetch(url, {
-        method: method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData)
-      });
 
-      if (!response.ok) {
-        throw new Error('Failed to save teacher');
-      }
+    const url = editingTeacher
+      ? `http://localhost:5000/api/teachers/${editingTeacher.id}`
+      : "http://localhost:5000/api/teachers";
+    const method = editingTeacher ? "PUT" : "POST";
 
-      const savedTeacher = await response.json();
-      
-      if (editingTeacher) {
-        setTeacher(teacher.map((t) => 
-          t.id === editingTeacher.id ? savedTeacher : t
-        ));
-      } else {
-        setTeacher([...teacher, savedTeacher]);
-      }
+    await fetch(url, {
+      method: method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData)
+    });
 
-      setShowForm(false);
-      setEditingTeacher(null);
-      setFormData({
-        name: "",
-        email: "",
-        username: "",
-        password: "",
-        phone: "",
-        employee_id: "",
-        subject: "",
-      });
-    } catch (err) {
-      console.error("Error saving teacher:", err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+    fetchTeachers();
+    setShowForm(false);
+    setEditingTeacher(null);
+    setFormData({ name: "", email: "", username: "", password: "", phone: "", employee_id: "", subject: "" });
   };
-  // Delete Teacher
+
   const handleDelete = async (teacherId) => {
-    try {
-      const response = await fetch(`http://localhost:5000/api/teachers/${teacherId}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete teacher');
-      }
-
-      setTeacher(teacher.filter((t) => t.id !== teacherId));
-    } catch (err) {
-      console.error("Error deleting teacher:", err);
-      setError(err.message);
-    }
+    await fetch(`http://localhost:5000/api/teachers/${teacherId}`, { method: "DELETE" });
+    fetchTeachers();
   };
 
-  // Edit Teacher
   const handleEdit = (teacherToEdit) => {
     setEditingTeacher(teacherToEdit);
     setFormData({
@@ -123,85 +64,58 @@ function Teacher() {
     });
     setShowForm(true);
   };
-    // Open Add Teacher Modal
-  const handleOpenAdd = () => {
+
+  const handleAdd = () => {
     setEditingTeacher(null);
-    setFormData({
-      name: "",
-      email: "",
-      username: "",
-      password: "",
-      phone: "",
-      employee_id: "",
-      subject: "",
-    });
+    setFormData({ name: "", email: "", username: "", password: "", phone: "", employee_id: "", subject: "" });
     setShowForm(true);
   };
 
-  // Cancel Modal
   const handleCancel = () => {
     setShowForm(false);
     setEditingTeacher(null);
-    setFormData({
-      name: "",
-      email: "",
-      username: "",
-      password: "",
-      phone: "",
-      employee_id: "",
-      subject: "",
-    });
+    setFormData({ name: "", email: "", username: "", password: "", phone: "", employee_id: "", subject: "" });
   };
 
   return (
   <Layout>
         <div className="page-header">
           <h1>Teacher Management</h1>
-          <button className="btn" onClick={handleOpenAdd}>Add Teacher</button>
+          <button className="btn" onClick={handleAdd}>Add Teacher</button>
         </div>
-        {/* Teacher's Table */}
-        {loading ? (
-          <p>Loading teachers...</p>
-        ) : error ? (
-          <p>Error: {error}</p>
-        ) : (
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Employee ID</th>
-                <th>Name</th>
-                <th>Subject</th>
-                <th>Email</th>
-                <th>Phone</th>
-                {/* <th>Specialization</th> */}
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {teacher.map((t) => (
-                <tr key={t.id}>
-                  <td>{t.employee_id}</td>
-                  <td>{t.name}</td>
-                  <td>{t.subject}</td>
-                  <td>{t.email}</td>
-                  <td>{t.phone}</td>
-                  {/* <td>{t.specialization}</td> */}
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>Employee ID</th>
+              <th>Name</th>
+              <th>Subject</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {teacher.map((t) => (
+              <tr key={t.id}>
+                <td>{t.employee_id}</td>
+                <td>{t.name}</td>
+                <td>{t.subject}</td>
+                <td>{t.email}</td>
+                <td>{t.phone}</td>
                 <td>
-                  <button className="edit" onClick={() => handleEdit(t)}>Edit</button>{" "}
-                  |{" "}
+                  <button className="edit" onClick={() => handleEdit(t)}>Edit</button> |
                   <button className="delete" onClick={() => handleDelete(t.id)}>Delete</button>
                 </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-        {/* Modal for Add Teacher */}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
         {showForm && (
         <div className="modal-overlay">
           <div className="modal">
             <h2>{editingTeacher ? "Edit Teacher" : "Add Teacher"}</h2>
-            <form className= "modal-form" onSubmit={handleAddTeacher}>
+            <form className= "modal-form" onSubmit={handleSave}>
               <div className="form-grid">
                 <div className="form-group">
                   <label>Full Name*</label>
@@ -280,7 +194,7 @@ function Teacher() {
               </div>
               <div className="modal-actions">
                 <button type="button" className="btn cancel" onClick={handleCancel}>Cancel</button>                
-                <button type="submit" className="btn" onClick={handleAddTeacher}>Save</button>
+                <button type="submit" className="btn">Save</button>
               </div>
             </form>
           </div>

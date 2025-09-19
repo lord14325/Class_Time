@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from "react";
 import Layout from "../component/Layout";
-
 import "../styles/styles.css";
 
 function Student() {
   const [student, setStudent] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
   const [formData, setFormData] = useState({
@@ -26,88 +23,36 @@ function Student() {
   }, []);
 
   const fetchStudents = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch("http://localhost:5000/api/students");
-      if (!response.ok) {
-        throw new Error('Failed to fetch students');
-      }
-      const data = await response.json();
-      setStudent(data);
-    } catch (err) {
-      console.error("Error fetching students:", err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+    const response = await fetch("http://localhost:5000/api/students");
+    const data = await response.json();
+    setStudent(data);
   };
 
-  const handleAddStudent = async (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
 
-    const studentData = {
-      name: formData.name,
-      email: formData.email,
-      username: formData.username,
-      password: formData.password,
-      student_id: formData.student_id,
-      grade_level: formData.grade_level,
-      phone: formData.phone,
-      address: formData.address,
-      enrollment_date: formData.enrollment_date,
-    };
+    const url = editingStudent
+      ? `http://localhost:5000/api/students/${editingStudent.id}`
+      : "http://localhost:5000/api/students";
+    const method = editingStudent ? 'PUT' : 'POST';
 
-    try {
-      if (editingStudent) {
-        const response = await fetch(`http://localhost:5000/api/students/${editingStudent.id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(studentData),
-        });
-        if (!response.ok) {
-          throw new Error('Failed to update student');
-        }
-      } else {
-        const response = await fetch("http://localhost:5000/api/students", {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(studentData),
-        });
-        if (!response.ok) {
-          throw new Error('Failed to create student');
-        }
-      }
+    await fetch(url, {
+      method: method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData),
+    });
 
-      fetchStudents(); // Refresh the data
-      setShowForm(false);
-      setEditingStudent(null);
-      setFormData({ name: "", email: "", username: "", password: "", student_id: "", grade_level: "", phone: "", address: "", enrollment_date: "" });
-    } catch (err) {
-      console.error("Error saving student:", err);
-      setError(err.message);
-    }
+    fetchStudents();
+    setShowForm(false);
+    setEditingStudent(null);
+    setFormData({ name: "", email: "", username: "", password: "", student_id: "", grade_level: "", phone: "", address: "", enrollment_date: "" });
   };
-  // Delete Student
+
   const handleDelete = async (id) => {
-    try {
-      const response = await fetch(`http://localhost:5000/api/students/${id}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) {
-        throw new Error('Failed to delete student');
-      }
-      fetchStudents(); // Refresh the data
-    } catch (err) {
-      console.error("Error deleting student:", err);
-      setError(err.message);
-    }
+    await fetch(`http://localhost:5000/api/students/${id}`, { method: 'DELETE' });
+    fetchStudents();
   };
 
-  // Edit Student
   const handleEdit = (student) => {
     setEditingStudent(student);
     setFormData({
@@ -123,32 +68,26 @@ function Student() {
     });
     setShowForm(true);
   };
-    // Open Add Student Modal
-  const handleOpenAdd = () => {
-    setEditingStudent(null); // not editing
-    setFormData({ name: "", email: "", username: "", password: "", student_id: "", grade_level: "", phone: "", address: "", enrollment_date: "" }); // clear form
+
+  const handleAdd = () => {
+    setEditingStudent(null);
+    setFormData({ name: "", email: "", username: "", password: "", student_id: "", grade_level: "", phone: "", address: "", enrollment_date: "" });
     setShowForm(true);
   };
 
-  // Cancel Modal
   const handleCancel = () => {
     setShowForm(false);
     setEditingStudent(null);
-    setFormData({ name: "", email: "", username: "", password: "", student_id: "", grade_level: "", phone: "", address: "", enrollment_date: "" }); // clear form
+    setFormData({ name: "", email: "", username: "", password: "", student_id: "", grade_level: "", phone: "", address: "", enrollment_date: "" });
   };
 
   return (
   <Layout>
         <div className="page-header">
           <h1>Student Management</h1>
-          <button className="btn" onClick={handleOpenAdd}>Add Student</button>
+          <button className="btn" onClick={handleAdd}>Add Student</button>
         </div>
-        {/* Student's's Table */}
-        {loading ? (
-          <p>Loading students...</p>
-        ) : error ? (
-          <p>Error: {error}</p>
-        ) : (
+
         <table className="data-table">
           <thead>
             <tr>
@@ -170,21 +109,20 @@ function Student() {
                 <td>{student.phone}</td>
                 <td>{student.name}</td>
                 <td>{new Date(student.enrollment_date).toLocaleDateString()}</td>
-              <td>
-                <button className="edit" onClick={() => handleEdit(student)}>Edit</button>{" "}
-                <button className="delete" onClick={() => handleDelete(student.id)}>Delete</button>
-              </td>
+                <td>
+                  <button className="edit" onClick={() => handleEdit(student)}>Edit</button> |
+                  <button className="delete" onClick={() => handleDelete(student.id)}>Delete</button>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
-        )}
         {/* Modal for Add Student */}
         {showForm && (
         <div className="modal-overlay">
           <div className="modal">
             <h2>{editingStudent ? "Edit Student" : "Add Student"}</h2>
-            <form className= "modal-form" onSubmit={handleAddStudent}>
+            <form className= "modal-form" onSubmit={handleSave}>
               <div className="form-grid">
                 <div className="form-group">
                   <label>Student Name*</label>
@@ -284,8 +222,8 @@ function Student() {
                 )}
               </div>
                 <div className="modal-actions">
-                  <button type="button" className="btn cancel" onClick={handleCancel}>Cancel</button>                
-                  <button type="submit" className="btn" onClick={handleAddStudent}>Save</button>
+                  <button type="button" className="btn cancel" onClick={handleCancel}>Cancel</button>
+                  <button type="submit" className="btn">Save</button>
                 </div>
             </form>
           </div>
