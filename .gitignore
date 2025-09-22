@@ -1,8 +1,5 @@
 node_modules/
 *.log
-.env
-.env.local
-.env.production
 .DS_Store
 dist/
 build/
@@ -11,8 +8,13 @@ build/
 *.tmp
 *.temp
 
-# Exclude SQL files and scheduling-related files
+# Environment files
+.env
+.env.local
+.env.production
+.env.development
+backend/.env
+frontend/.env
+
+# Exclude SQL files only
 *.sql
-backend/routes/scheduling.js
-frontend/src/Pages/AdminScheduling.jsx
-frontend/src/Pages/Schedule.jsx
