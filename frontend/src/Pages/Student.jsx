@@ -4,6 +4,7 @@ import "../styles/styles.css";
 
 function Student() {
   const [student, setStudent] = useState([]);
+  const [rooms, setRooms] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
   const [formData, setFormData] = useState({
@@ -16,16 +17,25 @@ function Student() {
     phone: "",
     address: "",
     enrollment_date: "",
+    room_id: "",
+    section: "",
   });
 
   useEffect(() => {
     fetchStudents();
+    fetchRooms();
   }, []);
 
   const fetchStudents = async () => {
     const response = await fetch("http://localhost:5000/api/students");
     const data = await response.json();
     setStudent(data);
+  };
+
+  const fetchRooms = async () => {
+    const response = await fetch("http://localhost:5000/api/rooms");
+    const data = await response.json();
+    setRooms(data);
   };
 
   const handleSave = async (e) => {
@@ -45,7 +55,7 @@ function Student() {
     fetchStudents();
     setShowForm(false);
     setEditingStudent(null);
-    setFormData({ name: "", email: "", username: "", password: "", student_id: "", grade_level: "", phone: "", address: "", enrollment_date: "" });
+    setFormData({ name: "", email: "", username: "", password: "", student_id: "", grade_level: "", phone: "", address: "", enrollment_date: "", room_id: "", section: "" });
   };
 
   const handleDelete = async (id) => {
@@ -65,20 +75,22 @@ function Student() {
       phone: student.phone,
       address: student.address,
       enrollment_date: student.enrollment_date ? student.enrollment_date.split('T')[0] : '',
+      room_id: student.room_id || '',
+      section: student.section || '',
     });
     setShowForm(true);
   };
 
   const handleAdd = () => {
     setEditingStudent(null);
-    setFormData({ name: "", email: "", username: "", password: "", student_id: "", grade_level: "", phone: "", address: "", enrollment_date: "" });
+    setFormData({ name: "", email: "", username: "", password: "", student_id: "", grade_level: "", phone: "", address: "", enrollment_date: "", room_id: "", section: "" });
     setShowForm(true);
   };
 
   const handleCancel = () => {
     setShowForm(false);
     setEditingStudent(null);
-    setFormData({ name: "", email: "", username: "", password: "", student_id: "", grade_level: "", phone: "", address: "", enrollment_date: "" });
+    setFormData({ name: "", email: "", username: "", password: "", student_id: "", grade_level: "", phone: "", address: "", enrollment_date: "", room_id: "", section: "" });
   };
 
   return (
@@ -92,10 +104,12 @@ function Student() {
           <thead>
             <tr>
               <th>Student ID</th>
+              <th>Name</th>
               <th>Grade Level</th>
+              <th>Section</th>
+              <th>Room</th>
               <th>Email</th>
               <th>Phone</th>
-              <th>Name</th>
               <th>Enrollment Date</th>
               <th>Actions</th>
             </tr>
@@ -104,10 +118,12 @@ function Student() {
             {student.map((student) => (
               <tr key={student.student_id}>
                 <td>{student.student_id}</td>
+                <td>{student.name}</td>
                 <td>{student.grade_level}</td>
+                <td>{student.section || 'Not Assigned'}</td>
+                <td>{student.room_number || 'Not Assigned'}</td>
                 <td>{student.email}</td>
                 <td>{student.phone}</td>
-                <td>{student.name}</td>
                 <td>{new Date(student.enrollment_date).toLocaleDateString()}</td>
                 <td>
                   <button className="edit" onClick={() => handleEdit(student)}>Edit</button> |
@@ -207,6 +223,35 @@ function Student() {
                     onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                     required
                   />
+                </div>
+                <div className="form-group">
+                  <label>Room</label>
+                  <select
+                    name="room_id"
+                    value={formData.room_id}
+                    onChange={(e) => setFormData({ ...formData, room_id: e.target.value })}
+                  >
+                    <option value="">Select Room</option>
+                    {rooms.map(room => (
+                      <option key={room.id} value={room.id}>
+                        {room.room_number} - {room.room_name} (Capacity: {room.capacity})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Section</label>
+                  <select
+                    name="section"
+                    value={formData.section}
+                    onChange={(e) => setFormData({ ...formData, section: e.target.value })}
+                  >
+                    <option value="">Select Section</option>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
+                  </select>
                 </div>
                 {!editingStudent && (
                   <div className="form-group">

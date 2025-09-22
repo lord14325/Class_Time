@@ -5,38 +5,29 @@ const pool = require("../db");
 router.get("/", async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT t.id, t.employee_id, t.phone, t.subject, t.created_at,
-             u.name, u.email
+      SELECT t.id, t.employee_id, t.phone, t.subject, u.name, u.email
       FROM teachers t
       JOIN users u ON t.user_id = u.id
-      ORDER BY t.created_at DESC
+      ORDER BY u.name
     `);
     res.json(result.rows);
   } catch (error) {
-    console.error("Get teachers error:", error.message);
-    res.status(500).json({ message: "Server error fetching teachers" });
+    res.status(500).json({ error: "Failed to get teachers" });
   }
 });
 
 router.get("/:id", async (req, res) => {
   try {
-    const { id } = req.params;
     const result = await pool.query(`
-      SELECT t.id, t.employee_id, t.phone, t.subject, t.created_at,
-             u.name, u.email, u.role
+      SELECT t.id, t.employee_id, t.phone, t.subject, u.name, u.email
       FROM teachers t
       JOIN users u ON t.user_id = u.id
       WHERE t.id = $1
-    `, [id]);
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Teacher not found" });
-    }
-    
+    `, [req.params.id]);
+
     res.json(result.rows[0]);
   } catch (error) {
-    console.error("Get teacher error:", error.message);
-    res.status(500).json({ message: "Server error fetching teacher" });
+    res.status(500).json({ error: "Failed to get teacher" });
   }
 });
 
@@ -52,11 +43,6 @@ router.post("/", async (req, res) => {
       subject
     } = req.body;
 
-    if (!name || !email || !username || !password || !employee_id || !phone || !subject) {
-      return res.status(400).json({
-        message: "All fields are required: name, email, username, password, employee_id, phone, and subject"
-      });
-    }
 
     const userResult = await pool.query(`
       INSERT INTO users (name, email, username, password, role, created_at)
@@ -79,14 +65,9 @@ router.post("/", async (req, res) => {
       username
     };
 
-    res.status(201).json(newTeacher);
+    res.json(newTeacher);
   } catch (error) {
-    console.error("Create teacher error:", error.message);
-    if (error.code === '23505') {
-      res.status(400).json({ message: "Email, username, or employee ID already exists" });
-    } else {
-      res.status(500).json({ message: "Server error creating teacher" });
-    }
+    res.status(500).json({ error: "Failed to create teacher" });
   }
 });
 

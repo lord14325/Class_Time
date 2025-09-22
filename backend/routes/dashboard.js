@@ -54,10 +54,10 @@ router.get('/dashboard-stats', async (req, res) => {
 router.get('/recent-announcements', async (req, res) => {
   try {
     const query = `
-      SELECT title, content, target_audience, announcement_date, status
+      SELECT title, content, target_audience, created_at, status
       FROM announcements
       WHERE status = 'published'
-      ORDER BY announcement_date DESC, created_at DESC
+      ORDER BY created_at DESC
       LIMIT 5
     `;
 

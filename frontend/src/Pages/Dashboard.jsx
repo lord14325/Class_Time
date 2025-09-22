@@ -8,29 +8,26 @@ import "../styles/Dashboard.css";
 function Dashboard() {
   const [stats, setStats] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchData = async () => {
       try {
-        setLoading(true);
-        const response = await fetch("http://localhost:5000/api/dashboard/dashboard-stats");
-        if (!response.ok) {
-          throw new Error('Failed to fetch dashboard stats');
-        }
-        const data = await response.json();
-                const statsArray = [
-          { title: "Total Teachers", value: data.totalTeachers },
-          { title: "Total Students", value: data.totalStudents },
-          { title: "Total Classes", value: data.totalClasses },
-          { title: "Rooms", value: data.rooms },
-          { title: "Courses", value: data.courses },
-          { title: "Announcements", value: data.announcements },
+        const statsResponse = await fetch("http://localhost:5000/api/dashboard/dashboard-stats");
+        const statsData = await statsResponse.json();
+
+        const statsArray = [
+          { title: "Total Teachers", value: statsData.totalTeachers },
+          { title: "Total Students", value: statsData.totalStudents },
+          { title: "Total Classes", value: statsData.totalClasses },
+          { title: "Rooms", value: statsData.rooms },
+          { title: "Courses", value: statsData.courses },
+          { title: "Announcements", value: statsData.announcements },
         ];
         setStats(statsArray);
+
+
       } catch (err) {
-        console.error("Error fetching dashboard stats:", err);
-        setError(err.message);
+        console.error("Error fetching dashboard data:", err);
         setStats([
           { title: "Total Teachers", value: 0 },
           { title: "Total Students", value: 0 },
@@ -44,7 +41,7 @@ function Dashboard() {
       }
     };
 
-    fetchStats();
+    fetchData();
   }, []);
 
   return (
@@ -56,8 +53,6 @@ function Dashboard() {
         <div className="stats">
           {loading ? (
             <p>Loading dashboard statistics...</p>
-          ) : error ? (
-            <p>Error loading stats: {error}</p>
           ) : (
             stats.map((s, i) => (
               <StatCard key={i} title={s.title} value={s.value} />
@@ -69,11 +64,11 @@ function Dashboard() {
           <h2>Quick Actions</h2>
           <ul>
             <li><Link to="/teacher">Add Teacher</Link></li>
-            <li><Link to="/class-sections">Manage Class Sections</Link></li>
             <li><Link to="/schedule">Admin Scheduling</Link></li>
             <li><Link to="/announcements">Add Announcement</Link></li>
           </ul>
         </section>
+
     </Layout>
   );
 }

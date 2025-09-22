@@ -6,9 +6,12 @@ router.get("/", async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT s.id, s.student_id, s.grade_level, s.enrollment_date, s.phone, s.address,
-             u.name, u.email
+             s.room_id, s.section,
+             u.name, u.email,
+             r.room_number, r.room_name, r.capacity as room_capacity
       FROM students s
       JOIN users u ON s.user_id = u.id
+      LEFT JOIN rooms r ON s.room_id = r.id
       ORDER BY s.enrollment_date DESC
     `);
     res.json(result.rows);
@@ -23,9 +26,12 @@ router.get("/:id", async (req, res) => {
     const { id } = req.params;
     const result = await pool.query(`
       SELECT s.id, s.student_id, s.grade_level, s.enrollment_date, s.phone, s.address,
-             u.name, u.email, u.role
+             s.room_id, s.section,
+             u.name, u.email, u.role,
+             r.room_number, r.room_name, r.capacity as room_capacity
       FROM students s
       JOIN users u ON s.user_id = u.id
+      LEFT JOIN rooms r ON s.room_id = r.id
       WHERE s.id = $1
     `, [id]);
     
@@ -51,7 +57,9 @@ router.post("/", async (req, res) => {
       grade_level,
       phone,
       address,
-      enrollment_date
+      enrollment_date,
+      room_id,
+      section
     } = req.body;
 
     if (!name || !email || !username || !password || !student_id || !grade_level || !phone || !address || !enrollment_date) {
@@ -69,10 +77,10 @@ router.post("/", async (req, res) => {
     const userId = userResult.rows[0].id;
 
     const studentResult = await pool.query(`
-      INSERT INTO students (user_id, student_id, grade_level, phone, address, enrollment_date)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      INSERT INTO students (user_id, student_id, grade_level, phone, address, enrollment_date, room_id, section)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *
-    `, [userId, student_id, grade_level, phone, address, enrollment_date]);
+    `, [userId, student_id, grade_level, phone, address, enrollment_date, room_id || null, section || null]);
 
     const newStudent = {
       ...studentResult.rows[0],
@@ -104,7 +112,9 @@ router.put("/:id", async (req, res) => {
       grade_level,
       phone,
       address,
-      enrollment_date
+      enrollment_date,
+      room_id,
+      section
     } = req.body;
 
     const studentCheck = await pool.query('SELECT user_id FROM students WHERE id = $1', [id]);
@@ -123,15 +133,18 @@ router.put("/:id", async (req, res) => {
 
     await pool.query(`
       UPDATE students
-      SET student_id = $1, grade_level = $2, phone = $3, address = $4
-      WHERE id = $5
-    `, [student_id, grade_level, phone || null, address || null, id]);
+      SET student_id = $1, grade_level = $2, phone = $3, address = $4, room_id = $5, section = $6
+      WHERE id = $7
+    `, [student_id, grade_level, phone || null, address || null, room_id || null, section || null, id]);
 
     const result = await pool.query(`
       SELECT s.id, s.student_id, s.grade_level, s.enrollment_date, s.phone, s.address,
-             u.name, u.email
+             s.room_id, s.section,
+             u.name, u.email,
+             r.room_number, r.room_name, r.capacity as room_capacity
       FROM students s
       JOIN users u ON s.user_id = u.id
+      LEFT JOIN rooms r ON s.room_id = r.id
       WHERE s.id = $1
     `, [id]);
 

@@ -31,136 +31,35 @@ router.get('/', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const { 
-      room_number, 
-      room_name, 
-      capacity, 
-      room_type, 
-      is_available 
-    } = req.body;
-
-    if (!room_number || !room_number.trim()) {
-      return res.status(400).json({ error: 'Room number is required' });
-    }
-
-    if (!capacity || capacity < 1) {
-      return res.status(400).json({ error: 'Valid capacity is required' });
-    }
-
-    if (!room_type || !room_type.trim()) {
-      return res.status(400).json({ error: 'Room type is required' });
-    }
-
-    const existingRoom = await pool.query(
-      'SELECT id FROM rooms WHERE room_number = $1',
-      [room_number.trim()]
-    );
-
-    if (existingRoom.rows.length > 0) {
-      return res.status(400).json({ error: 'Room number already exists' });
-    }
+    const { room_number, room_name, capacity, room_type } = req.body;
 
     const result = await pool.query(`
       INSERT INTO rooms (room_number, room_name, capacity, room_type, is_available)
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING id, room_number, room_name, capacity, room_type, is_available, created_at
-    `, [
-      room_number.trim(),
-      room_name ? room_name.trim() : null,
-      parseInt(capacity),
-      room_type.trim(),
-      is_available !== undefined ? is_available : true
-    ]);
+      VALUES ($1, $2, $3, $4, true)
+      RETURNING *
+    `, [room_number, room_name, capacity, room_type]);
 
-    res.status(201).json({
-      message: 'Room created successfully',
-      room: result.rows[0]
-    });
+    res.json(result.rows[0]);
   } catch (error) {
-    console.error('Error creating room:', error);
-    
-    if (error.code === '23505') {
-      return res.status(400).json({ error: 'Room number already exists' });
-    }
-    
-    res.status(500).json({ 
-      error: 'Failed to create room',
-      message: error.message 
-    });
+    res.status(500).json({ error: 'Failed to create room' });
   }
 });
 
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { 
-      room_number, 
-      room_name, 
-      capacity, 
-      room_type, 
-      is_available 
-    } = req.body;
-
-    if (!room_number || !room_number.trim()) {
-      return res.status(400).json({ error: 'Room number is required' });
-    }
-
-    if (!capacity || capacity < 1) {
-      return res.status(400).json({ error: 'Valid capacity is required' });
-    }
-
-    if (!room_type || !room_type.trim()) {
-      return res.status(400).json({ error: 'Room type is required' });
-    }
-
-    const roomExists = await pool.query('SELECT id FROM rooms WHERE id = $1', [id]);
-    if (roomExists.rows.length === 0) {
-      return res.status(404).json({ error: 'Room not found' });
-    }
-
-    const existingRoom = await pool.query(
-      'SELECT id FROM rooms WHERE room_number = $1 AND id != $2',
-      [room_number.trim(), id]
-    );
-
-    if (existingRoom.rows.length > 0) {
-      return res.status(400).json({ error: 'Room number already exists' });
-    }
+    const { room_number, room_name, capacity, room_type } = req.body;
 
     const result = await pool.query(`
-      UPDATE rooms 
-      SET 
-        room_number = $1,
-        room_name = $2,
-        capacity = $3,
-        room_type = $4,
-        is_available = $5
-      WHERE id = $6
-      RETURNING id, room_number, room_name, capacity, room_type, is_available, created_at
-    `, [
-      room_number.trim(),
-      room_name ? room_name.trim() : null,
-      parseInt(capacity),
-      room_type.trim(),
-      is_available !== undefined ? is_available : true,
-      id
-    ]);
+      UPDATE rooms
+      SET room_number = $1, room_name = $2, capacity = $3, room_type = $4
+      WHERE id = $5
+      RETURNING *
+    `, [room_number, room_name, capacity, room_type, id]);
 
-    res.json({
-      message: 'Room updated successfully',
-      room: result.rows[0]
-    });
+    res.json(result.rows[0]);
   } catch (error) {
-    console.error('Error updating room:', error);
-    
-    if (error.code === '23505') {
-      return res.status(400).json({ error: 'Room number already exists' });
-    }
-    
-    res.status(500).json({ 
-      error: 'Failed to update room',
-      message: error.message 
-    });
+    res.status(500).json({ error: 'Failed to update room' });
   }
 });
 
@@ -173,9 +72,30 @@ router.delete('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Room not found' });
     }
 
+    // Check if students are assigned to this room
+    const studentsInRoom = await pool.query('SELECT COUNT(*) as count FROM students WHERE room_id = $1', [id]);
+    if (parseInt(studentsInRoom.rows[0].count) > 0) {
+      return res.status(400).json({
+        error: 'Cannot delete room with assigned students. Please reassign students first.'
+      });
+    }
+
+    // Delete dependencies in correct order to avoid foreign key violations
+    // 1. Delete schedules for class sections in this room
+    await pool.query(`
+      DELETE FROM daily_schedules
+      WHERE class_section_id IN (
+        SELECT id FROM class_sections WHERE room_id = $1
+      )
+    `, [id]);
+
+    // 2. Delete class sections for this room
+    await pool.query('DELETE FROM class_sections WHERE room_id = $1', [id]);
+
+    // 3. Finally delete the room
     await pool.query('DELETE FROM rooms WHERE id = $1', [id]);
 
-    res.json({ message: 'Room deleted successfully' });
+    res.json({ message: 'Room and all related schedules deleted successfully' });
   } catch (error) {
     console.error('Error deleting room:', error);
     res.status(500).json({
