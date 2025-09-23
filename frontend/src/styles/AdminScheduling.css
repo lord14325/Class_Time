@@ -1,585 +1,246 @@
-.admin-scheduling-container {
+/* Simple Admin Scheduling CSS */
+.simple-admin-scheduling {
     padding: 20px;
-    margin: 0 auto;
-    width: 100%;
-    overflow-x: auto;
+    font-family: Arial, sans-serif;
+    background-color: #f5f5f5;
+    min-height: 100vh;
 }
 
-.scheduling-header {
+.page-title {
+    color: #333;
+    margin-bottom: 20px;
     text-align: center;
-    margin-bottom: 30px;
-}
-
-.scheduling-header h1 {
-    color: #2c3e50;
-    margin-bottom: 10px;
 }
 
 .message {
     padding: 10px;
-    margin: 20px 0;
+    margin: 10px 0;
     border-radius: 4px;
-    text-align: center;
+    border: 1px solid;
 }
 
 .message.success {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
+    background-color: #e8f5e8;
+    color: #2e7d32;
+    border-color: #2e7d32;
 }
 
 .message.error {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
+    background-color: #ffebee;
+    color: #c62828;
+    border-color: #c62828;
 }
 
-.scheduling-controls {
+.controls {
+    margin-bottom: 20px;
     display: flex;
-    gap: 20px;
-    align-items: end;
-    margin-bottom: 30px;
-    padding: 20px;
-    background-color: #f8f9fa;
-    border-radius: 8px;
+    gap: 10px;
+    align-items: center;
     flex-wrap: wrap;
-}
-
-.control-group {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.control-group label {
-    font-weight: 600;
-    color: #2c3e50;
 }
 
 .day-select {
-    padding: 8px 12px;
-    border: 1px solid #ddd;
+    padding: 5px;
+    font-size: 14px;
+    border: 1px solid #ccc;
     border-radius: 4px;
-    min-width: 200px;
 }
 
-.legend {
-    display: flex;
-    gap: 15px;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.legend-item {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 12px;
-}
-
-.legend-color {
-    width: 16px;
-    height: 16px;
-    border-radius: 4px;
-    border: 1px solid #ddd;
-}
-
-.draft-color {
-    background-color: #fff3cd;
-    border-color: #ffc107;
-}
-
-.conflict-color {
-    background-color: #f8d7da;
-    border-color: #dc3545;
-}
-
-.saved-color {
-    background-color: #d4edda;
-    border-color: #28a745;
-}
-
-.action-buttons {
-    display: flex;
-    gap: 15px;
-    flex-wrap: wrap;
-}
-
-.save-all-btn {
-    padding: 10px 20px;
-    background-color: #28a745;
-    color: white;
+.btn {
+    padding: 8px 16px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    font-weight: 600;
-    min-width: 180px;
-}
-
-.save-all-btn:hover:not(:disabled) {
-    background-color: #218838;
-}
-
-.save-all-btn:disabled, .copy-week-btn:disabled {
-    background-color: #6c757d;
-    cursor: not-allowed;
-}
-
-.copy-week-btn {
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: 600;
-}
-
-.copy-week-btn:hover:not(:disabled) {
-    background-color: #0056b3;
-}
-
-.manage-timeslots-btn {
-    padding: 10px 20px;
-    background-color: #6f42c1;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: 600;
-}
-
-.manage-timeslots-btn:hover:not(:disabled) {
-    background-color: #5a32a3;
-}
-
-.manage-timeslots-btn:disabled {
-    background-color: #6c757d;
-    cursor: not-allowed;
-}
-
-.schedule-master-grid {
-    background-color: white;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    min-width: 1400px;
-}
-
-.grid-header {
-    display: grid;
-    grid-template-columns: 150px repeat(auto-fit, minmax(120px, 1fr));
-    background-color: #2c3e50;
-    color: white;
-}
-
-.header-cell {
-    padding: 15px 10px;
-    font-weight: 600;
-    text-align: center;
-    border-right: 1px solid #34495e;
-}
-
-.time-header {
-    background-color: #1a252f;
-}
-
-.section-header {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
     font-size: 14px;
 }
 
-.room-info {
-    font-size: 11px;
-    color: #bdc3c7;
-    font-weight: normal;
+.btn-primary {
+    background-color: #4CAF50;
+    color: white;
 }
 
-.grid-row {
-    display: grid;
-    grid-template-columns: 150px repeat(auto-fit, minmax(120px, 1fr));
-    border-bottom: 1px solid #eee;
+.btn-secondary {
+    background-color: #2196F3;
+    color: white;
 }
 
-.grid-row:hover {
-    background-color: #f8f9fa;
+.btn:hover {
+    opacity: 0.9;
 }
 
-.time-cell {
-    padding: 15px 10px;
-    background-color: #f8f9fa;
-    border-right: 2px solid #dee2e6;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.schedule-table-container {
+    overflow-x: auto;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px;
+}
+
+.schedule-table th,
+.schedule-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+}
+
+.schedule-table th {
+    background-color: #f5f5f5;
+    font-weight: bold;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.time-header {
+    min-width: 150px;
+}
+
+.section-header {
+    min-width: 200px;
     text-align: center;
 }
 
+.room-info {
+    font-size: 12px;
+    color: #666;
+    margin-top: 2px;
+}
+
+.time-cell {
+    background-color: #fafafa;
+    font-weight: bold;
+}
+
 .time-range {
-    font-size: 11px;
-    color: #6c757d;
-    margin-top: 5px;
+    font-size: 12px;
+    color: #666;
+    margin-top: 2px;
+    font-weight: normal;
 }
 
 .schedule-cell {
-    padding: 8px;
-    border-right: 1px solid #eee;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    min-height: 120px;
-    transition: background-color 0.2s ease;
+    vertical-align: top;
+    position: relative;
 }
 
-.draft-cell {
-    background-color: #fff3cd !important;
-    border: 2px solid #ffc107;
+.schedule-cell.conflict {
+    background-color: #ffebee;
 }
 
-.conflict-cell {
-    background-color: #f8d7da !important;
-    border: 2px solid #dc3545;
-}
-
-.draft-cell.conflict-cell {
-    background-color: #ffeaa7 !important;
-    border: 2px solid #e17055;
-}
-
-.course-select, .teacher-select {
-    padding: 6px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    width: 100%;
-    font-size: 12px;
-    background-color: white;
-    margin-bottom: 4px;
-}
-
-.course-select:focus {
-    border-color: #007bff;
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
-}
-
+.course-select,
 .teacher-select {
-    border-color: #28a745;
-    font-size: 11px;
+    width: 100%;
+    padding: 4px;
+    font-size: 12px;
+    margin-bottom: 5px;
+    border: 1px solid #ccc;
+    border-radius: 2px;
 }
 
-.teacher-select:focus {
-    border-color: #28a745;
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(40,167,69,0.25);
+.teacher-select.conflict {
+    background-color: #ffcdd2;
+    border-color: #c62828;
 }
 
 .course-info {
-    margin-top: 5px;
+    font-size: 11px;
+    color: #333;
+    margin-bottom: 5px;
 }
 
 .course-name {
-    font-size: 11px;
-    color: #007bff;
-    font-weight: 500;
+    font-weight: bold;
     margin-bottom: 2px;
 }
 
 .teacher-name {
-    font-size: 10px;
-    color: #6c757d;
+    color: #666;
 }
 
-.draft-indicator {
-    font-size: 9px;
-    color: #856404;
-    font-weight: 600;
-    background-color: #ffc107;
-    padding: 2px 6px;
-    border-radius: 10px;
-    text-align: center;
+.teacher-name.conflict {
+    color: #c62828;
+}
+
+.conflict-warning {
+    color: #c62828;
+    font-size: 10px;
     margin-top: 2px;
+}
+
+.save-individual-btn {
+    width: 100%;
+    padding: 4px;
+    font-size: 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+    margin-top: 5px;
+}
+
+.save-individual-btn:hover {
+    background-color: #45a049;
+}
+
+.instructions {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+    border: 1px solid #e0e0e0;
+}
+
+.instructions h3 {
+    margin-top: 0;
+    color: #333;
+}
+
+.instructions ul {
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.instructions li {
+    margin-bottom: 5px;
 }
 
 .loading {
     text-align: center;
     padding: 50px;
     font-size: 18px;
-    color: #6c757d;
+    color: #666;
 }
 
-@media (max-width: 1500px) {
-    .schedule-master-grid {
-        min-width: 1200px;
+/* Responsive design */
+@media (max-width: 768px) {
+    .controls {
+        flex-direction: column;
+        align-items: stretch;
     }
-
-    .grid-header, .grid-row {
-        grid-template-columns: 120px repeat(auto-fit, minmax(100px, 1fr));
+    
+    .btn {
+        margin-bottom: 10px;
     }
-
-    .header-cell, .schedule-cell {
-        padding: 8px 5px;
-    }
-
-    .section-header {
+    
+    .schedule-table th,
+    .schedule-table td {
+        padding: 8px;
         font-size: 12px;
     }
-}
-
-/* Timeslot Editor Modal */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.modal-content {
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    max-height: 90vh;
-    overflow-y: auto;
-}
-
-.timeslot-modal {
-    width: 90%;
-    max-width: 800px;
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px;
-    border-bottom: 1px solid #eee;
-    background-color: #f8f9fa;
-    border-radius: 8px 8px 0 0;
-}
-
-.modal-header h3 {
-    margin: 0;
-    color: #2c3e50;
-}
-
-.close-btn {
-    background: none;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-    color: #6c757d;
-    padding: 0;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.close-btn:hover {
-    color: #dc3545;
-}
-
-.modal-body {
-    padding: 20px;
-}
-
-.timeslot-form-section {
-    margin-bottom: 30px;
-    padding: 20px;
-    background-color: #f8f9fa;
-    border-radius: 8px;
-}
-
-.timeslot-form-section h4 {
-    margin-top: 0;
-    color: #2c3e50;
-}
-
-.form-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
-    margin-bottom: 20px;
-}
-
-.form-field {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.form-field label {
-    font-weight: 600;
-    color: #2c3e50;
-}
-
-.form-field input {
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
-}
-
-.form-field input:focus {
-    border-color: #007bff;
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-}
-
-.form-actions {
-    display: flex;
-    gap: 10px;
-}
-
-.save-timeslot-btn {
-    padding: 10px 20px;
-    background-color: #28a745;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: 600;
-}
-
-.save-timeslot-btn:hover:not(:disabled) {
-    background-color: #218838;
-}
-
-.save-timeslot-btn:disabled {
-    background-color: #6c757d;
-    cursor: not-allowed;
-}
-
-.cancel-edit-btn {
-    padding: 10px 20px;
-    background-color: #6c757d;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: 600;
-}
-
-.cancel-edit-btn:hover {
-    background-color: #545b62;
-}
-
-.existing-timeslots h4 {
-    margin-bottom: 15px;
-    color: #2c3e50;
-}
-
-.timeslots-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.timeslot-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    background-color: #f8f9fa;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-}
-
-.timeslot-info {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.slot-name {
-    font-weight: 600;
-    color: #2c3e50;
-}
-
-.slot-time {
-    color: #007bff;
-    font-size: 14px;
-}
-
-.slot-order {
-    color: #6c757d;
-    font-size: 12px;
-}
-
-.timeslot-actions {
-    display: flex;
-    gap: 10px;
-}
-
-.edit-timeslot-btn {
-    padding: 6px 12px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 12px;
-}
-
-.edit-timeslot-btn:hover:not(:disabled) {
-    background-color: #0056b3;
-}
-
-.delete-timeslot-btn {
-    padding: 6px 12px;
-    background-color: #dc3545;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 12px;
-}
-
-.delete-timeslot-btn:hover:not(:disabled) {
-    background-color: #c82333;
-}
-
-.edit-timeslot-btn:disabled,
-.delete-timeslot-btn:disabled {
-    background-color: #6c757d;
-    cursor: not-allowed;
-}
-
-@media (max-width: 768px) {
-    .admin-scheduling-container {
-        padding: 10px;
-    }
-
-    .scheduling-controls {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .timeslot-modal {
-        width: 95%;
-        margin: 10px;
-    }
-
-    .form-row {
-        grid-template-columns: 1fr;
-    }
-
-    .timeslot-item {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 10px;
-    }
-
-    .timeslot-actions {
-        justify-content: center;
+    
+    .course-select,
+    .teacher-select {
+        font-size: 11px;
     }
 }

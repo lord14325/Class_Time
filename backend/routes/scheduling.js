@@ -160,13 +160,14 @@ router.post('/schedule', async (req, res) => {
             day_of_week
         } = req.body;
 
-        // Check for conflicts
+        // Check for conflicts (exclude current schedule entry being updated)
         const conflicts = await pool.query(`
             SELECT 'teacher' as conflict_type, u.name as conflict_name
             FROM daily_schedules ds
             JOIN teachers t ON ds.teacher_id = t.id
             JOIN users u ON t.user_id = u.id
             WHERE ds.teacher_id = $1 AND ds.time_slot_id = $2 AND ds.day_of_week = $3 AND ds.is_active = true
+            AND NOT (ds.class_section_id = $5 AND ds.time_slot_id = $2 AND ds.day_of_week = $3)
 
             UNION
 
@@ -174,7 +175,8 @@ router.post('/schedule', async (req, res) => {
             FROM daily_schedules ds
             JOIN rooms r ON ds.room_id = r.id
             WHERE ds.room_id = $4 AND ds.time_slot_id = $2 AND ds.day_of_week = $3 AND ds.is_active = true
-        `, [teacher_id, time_slot_id, day_of_week, room_id]);
+            AND NOT (ds.class_section_id = $5 AND ds.time_slot_id = $2 AND ds.day_of_week = $3)
+        `, [teacher_id, time_slot_id, day_of_week, room_id, class_section_id]);
 
         if (conflicts.rows.length > 0) {
             return res.status(400).json({
@@ -183,17 +185,29 @@ router.post('/schedule', async (req, res) => {
             });
         }
 
-        // Insert or update the schedule
-        const result = await pool.query(`
-            INSERT INTO daily_schedules (class_section_id, time_slot_id, course_id, teacher_id, room_id, day_of_week)
-            VALUES ($1, $2, $3, $4, $5, $6)
-            ON CONFLICT (class_section_id, time_slot_id, day_of_week)
-            DO UPDATE SET
-                course_id = EXCLUDED.course_id,
-                teacher_id = EXCLUDED.teacher_id,
-                room_id = EXCLUDED.room_id
-            RETURNING *
-        `, [class_section_id, time_slot_id, course_id, teacher_id, room_id, day_of_week]);
+        // Check if schedule already exists
+        const existing = await pool.query(`
+            SELECT id FROM daily_schedules
+            WHERE class_section_id = $1 AND time_slot_id = $2 AND day_of_week = $3 AND is_active = true
+        `, [class_section_id, time_slot_id, day_of_week]);
+
+        let result;
+        if (existing.rows.length > 0) {
+            // Update existing schedule
+            result = await pool.query(`
+                UPDATE daily_schedules
+                SET course_id = $1, teacher_id = $2, room_id = $3
+                WHERE class_section_id = $4 AND time_slot_id = $5 AND day_of_week = $6 AND is_active = true
+                RETURNING *
+            `, [course_id, teacher_id, room_id, class_section_id, time_slot_id, day_of_week]);
+        } else {
+            // Insert new schedule
+            result = await pool.query(`
+                INSERT INTO daily_schedules (class_section_id, time_slot_id, course_id, teacher_id, room_id, day_of_week)
+                VALUES ($1, $2, $3, $4, $5, $6)
+                RETURNING *
+            `, [class_section_id, time_slot_id, course_id, teacher_id, room_id, day_of_week]);
+        }
 
         res.status(201).json(result.rows[0]);
     } catch (error) {
