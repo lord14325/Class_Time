@@ -198,3 +198,38 @@ img {
 .status-badge.published {
   background-color: #28a745; /* green */
 }
+
+
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* space between inputs */
+  margin-bottom: 20px;
+}
+
+.search-input {
+  background-color: white; /* white background */
+  color: black; /* dark text for contrast */
+  padding: 6px 10px;
+  border-radius: 25px; /* rounded corners */
+  border: 2px solid #8B4513; /* brown border (saddle brown) */
+  width: 150px;
+  font-weight: bold;
+  
+}
+
+.filter-dropdown {
+  background-color: #d2b48c; /* light brown */
+  color: black;
+  padding: 6px 10px;
+  border-radius: 25px; /* rounded like Add Teacher */
+  border: none;
+  width: 150px;
+  font-weight: bold;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #654321; /* darker brown on focus */
+  box-shadow: 0 0 0 2px rgba(139, 69, 19, 0.2); /* highlight on focus */
+}

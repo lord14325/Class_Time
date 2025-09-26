@@ -160,14 +160,13 @@ router.post('/schedule', async (req, res) => {
             day_of_week
         } = req.body;
 
-        // Check for conflicts (exclude current schedule entry being updated)
+        // Check for conflicts
         const conflicts = await pool.query(`
             SELECT 'teacher' as conflict_type, u.name as conflict_name
             FROM daily_schedules ds
             JOIN teachers t ON ds.teacher_id = t.id
             JOIN users u ON t.user_id = u.id
             WHERE ds.teacher_id = $1 AND ds.time_slot_id = $2 AND ds.day_of_week = $3 AND ds.is_active = true
-            AND NOT (ds.class_section_id = $5 AND ds.time_slot_id = $2 AND ds.day_of_week = $3)
 
             UNION
 
@@ -175,8 +174,7 @@ router.post('/schedule', async (req, res) => {
             FROM daily_schedules ds
             JOIN rooms r ON ds.room_id = r.id
             WHERE ds.room_id = $4 AND ds.time_slot_id = $2 AND ds.day_of_week = $3 AND ds.is_active = true
-            AND NOT (ds.class_section_id = $5 AND ds.time_slot_id = $2 AND ds.day_of_week = $3)
-        `, [teacher_id, time_slot_id, day_of_week, room_id, class_section_id]);
+        `, [teacher_id, time_slot_id, day_of_week, room_id]);
 
         if (conflicts.rows.length > 0) {
             return res.status(400).json({
@@ -185,29 +183,17 @@ router.post('/schedule', async (req, res) => {
             });
         }
 
-        // Check if schedule already exists
-        const existing = await pool.query(`
-            SELECT id FROM daily_schedules
-            WHERE class_section_id = $1 AND time_slot_id = $2 AND day_of_week = $3 AND is_active = true
-        `, [class_section_id, time_slot_id, day_of_week]);
-
-        let result;
-        if (existing.rows.length > 0) {
-            // Update existing schedule
-            result = await pool.query(`
-                UPDATE daily_schedules
-                SET course_id = $1, teacher_id = $2, room_id = $3
-                WHERE class_section_id = $4 AND time_slot_id = $5 AND day_of_week = $6 AND is_active = true
-                RETURNING *
-            `, [course_id, teacher_id, room_id, class_section_id, time_slot_id, day_of_week]);
-        } else {
-            // Insert new schedule
-            result = await pool.query(`
-                INSERT INTO daily_schedules (class_section_id, time_slot_id, course_id, teacher_id, room_id, day_of_week)
-                VALUES ($1, $2, $3, $4, $5, $6)
-                RETURNING *
-            `, [class_section_id, time_slot_id, course_id, teacher_id, room_id, day_of_week]);
-        }
+        // Insert or update the schedule
+        const result = await pool.query(`
+            INSERT INTO daily_schedules (class_section_id, time_slot_id, course_id, teacher_id, room_id, day_of_week)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            ON CONFLICT (class_section_id, time_slot_id, day_of_week)
+            DO UPDATE SET
+                course_id = EXCLUDED.course_id,
+                teacher_id = EXCLUDED.teacher_id,
+                room_id = EXCLUDED.room_id
+            RETURNING *
+        `, [class_section_id, time_slot_id, course_id, teacher_id, room_id, day_of_week]);
 
         res.status(201).json(result.rows[0]);
     } catch (error) {
@@ -419,5 +405,132 @@ router.delete('/timeslots/:id', async (req, res) => {
     }
 });
 
+// student personal schedule...........................................
+// routes/scheduling.js
+router.get("/student/:userId/schedule", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const userIdNum = parseInt(userId);
+
+    if (!userIdNum || isNaN(userIdNum)) {
+      return res.status(400).json({ error: "Invalid user ID" });
+    }
+
+    // Step 1: Get student's grade_level and section from `students` table
+    const studentRes = await pool.query(
+      `SELECT s.grade_level, s.section
+       FROM students s
+       JOIN users u ON s.user_id = u.id
+       WHERE u.id = $1`,
+      [userIdNum]
+    );
+
+    if (studentRes.rows.length === 0) {
+      return res.status(404).json({ error: "Student profile not found" });
+    }
+
+    const { grade_level, section } = studentRes.rows[0];
+
+    if (!grade_level || !section) {
+      return res.status(400).json({ error: "Student has no grade or section assigned" });
+    }
+
+    // Step 2: Find matching class section
+    const classSectionRes = await pool.query(
+      `SELECT id FROM class_sections 
+       WHERE grade_level = $1 AND section_name = $2 AND is_active = true`,
+      [grade_level, section]
+    );
+
+    if (classSectionRes.rows.length === 0) {
+      return res.status(404).json({ error: "No active class section found for student" });
+    }
+
+    const classSectionId = classSectionRes.rows[0].id;
+
+    // Step 3: Fetch schedule for this class section
+    const query = `
+      SELECT 
+        ds.day_of_week,
+        ts.start_time,
+        ts.end_time,
+        c.course_name,
+        u.name AS teacher_name,
+        r.room_number,
+        cs.grade_level,
+        cs.section_name
+      FROM daily_schedules ds
+      JOIN time_slots ts ON ds.time_slot_id = ts.id
+      JOIN courses c ON ds.course_id = c.id
+      JOIN teachers t ON ds.teacher_id = t.id
+      JOIN users u ON t.user_id = u.id
+      JOIN class_sections cs ON ds.class_section_id = cs.id
+      LEFT JOIN rooms r ON ds.room_id = r.id
+      WHERE ds.class_section_id = $1
+        AND ds.is_active = true
+      ORDER BY ds.day_of_week, ts.slot_order
+    `;
+
+    const result = await pool.query(query, [classSectionId]);
+    res.json(result.rows);
+  } catch (error) {
+    console.error("❌ Student schedule error:", error);
+    console.error("Stack trace:", error.stack);
+
+    if (error.code === '42P01') {
+      return res.status(500).json({ error: "Database table missing" });
+    }
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+// Teacher personal...........................................
+
+router.get('/teacher-by-user/:userId/schedule', async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId, 10);
+    if (!userId || isNaN(userId)) {
+      return res.status(400).json({ error: 'Invalid userId' });
+    }
+
+    // Find teacher row for this user
+    const teacherRes = await pool.query('SELECT id FROM teachers WHERE user_id = $1 LIMIT 1', [userId]);
+    if (teacherRes.rows.length === 0) {
+      return res.status(404).json({ error: 'Teacher profile not found for given userId' });
+    }
+    const teacherId = teacherRes.rows[0].id;
+
+    // Fetch schedule using the teacher id
+    const query = `
+      SELECT 
+        ds.day_of_week,
+        ts.start_time,
+        ts.end_time,
+        ts.slot_order,
+        c.course_name,
+        c.course_code,
+        u.name AS teacher_name,
+        r.room_number,
+        r.room_name,
+        cs.grade_level,
+        cs.section_name
+      FROM daily_schedules ds
+      JOIN time_slots ts ON ds.time_slot_id = ts.id
+      JOIN courses c ON ds.course_id = c.id
+      JOIN class_sections cs ON ds.class_section_id = cs.id
+      LEFT JOIN rooms r ON cs.room_id = r.id
+      LEFT JOIN teachers t ON ds.teacher_id = t.id
+      LEFT JOIN users u ON t.user_id = u.id
+      WHERE ds.teacher_id = $1 
+        AND ds.is_active = true
+        AND ds.day_of_week BETWEEN 0 AND 6
+      ORDER BY ds.day_of_week, ts.slot_order
+    `;
+    const schedRes = await pool.query(query, [teacherId]);
+    return res.json(schedRes.rows || []);
+  } catch (err) {
+    console.error('Error in teacher-by-user schedule route:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 module.exports = router;
