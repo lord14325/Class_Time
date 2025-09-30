@@ -1,7 +1,4 @@
--- ClassTime Database Schema
--- PostgreSQL Database Schema
 
--- Users table
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -13,7 +10,6 @@ CREATE TABLE users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Rooms table
 CREATE TABLE rooms (
     id SERIAL PRIMARY KEY,
     room_number VARCHAR(50) UNIQUE NOT NULL,
@@ -25,7 +21,6 @@ CREATE TABLE rooms (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Courses table
 CREATE TABLE courses (
     id SERIAL PRIMARY KEY,
     course_code VARCHAR(50) UNIQUE NOT NULL,
@@ -37,7 +32,6 @@ CREATE TABLE courses (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Announcements table
 CREATE TABLE announcements (
     id SERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
@@ -48,7 +42,6 @@ CREATE TABLE announcements (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Teachers table
 CREATE TABLE teachers (
     id SERIAL PRIMARY KEY,
     user_id INTEGER UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -60,7 +53,6 @@ CREATE TABLE teachers (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Students table
 CREATE TABLE students (
     id SERIAL PRIMARY KEY,
     user_id INTEGER UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -75,7 +67,6 @@ CREATE TABLE students (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Semesters table
 CREATE TABLE semesters (
     id SERIAL PRIMARY KEY,
     semester_name VARCHAR(50) UNIQUE NOT NULL,
@@ -85,7 +76,6 @@ CREATE TABLE semesters (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Time slots table
 CREATE TABLE time_slots (
     id SERIAL PRIMARY KEY,
     slot_name VARCHAR(100) NOT NULL,
@@ -97,7 +87,6 @@ CREATE TABLE time_slots (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Class sections table
 CREATE TABLE class_sections (
     id SERIAL PRIMARY KEY,
     grade_level VARCHAR(50) NOT NULL,
@@ -109,7 +98,6 @@ CREATE TABLE class_sections (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Daily schedules table
 CREATE TABLE daily_schedules (
     id SERIAL PRIMARY KEY,
     class_section_id INTEGER NOT NULL REFERENCES class_sections(id) ON DELETE CASCADE,
@@ -122,5 +110,6 @@ CREATE TABLE daily_schedules (
     semester VARCHAR(50),
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(class_section_id, time_slot_id, day_of_week, week_start_date, semester)
 );

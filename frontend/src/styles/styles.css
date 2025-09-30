@@ -135,6 +135,8 @@ img {
   padding: 20px;
   border-radius: 15px;
   width: 450px;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 .modal h2 {
   margin-top: 0;
@@ -153,12 +155,12 @@ img {
   font-weight: normal;
 }
 
-.modal-form input, .form-group input, .form-group select {
+.modal-form input, .modal-form select, .form-group input, .form-group select {
   padding: 10px;
   border: 1px solid black;
   border-radius: 5px;
 }
-.modal-form input:focus, .form-group input:focus, .form-group select:focus {
+.modal-form input:focus, .modal-form select:focus, .form-group input:focus, .form-group select:focus {
     outline: none;
     border-color: var(--beige);
     box-shadow: 0 0 5px var(--beige);

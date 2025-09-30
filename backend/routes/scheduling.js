@@ -17,37 +17,43 @@ router.get('/timeslots', async (req, res) => {
     }
 });
 
-// Get all rooms as class sections (simplified approach)
+// Get all class sections
 router.get('/sections', async (req, res) => {
     try {
-        // Auto-create class sections for any rooms that don't have them
-        await pool.query(`
-            INSERT INTO class_sections (grade_level, section_name, room_id, student_capacity, is_active)
-            SELECT
-                CONCAT('Room ', r.room_number) as grade_level,
-                'Main' as section_name,
-                r.id as room_id,
-                r.capacity as student_capacity,
-                true as is_active
-            FROM rooms r
-            WHERE r.is_available = true
-            AND NOT EXISTS (
-                SELECT 1 FROM class_sections cs WHERE cs.room_id = r.id
-            )
-        `);
-
-        // Now return all class sections
+        // Return all class sections
         const result = await pool.query(`
             SELECT cs.*, r.room_number, r.room_name
             FROM class_sections cs
             LEFT JOIN rooms r ON cs.room_id = r.id
-            WHERE cs.is_active = true AND r.is_available = true
-            ORDER BY r.room_number
+            WHERE cs.is_active = true
+            ORDER BY cs.grade_level, cs.section_name
         `);
         res.json(result.rows);
     } catch (error) {
         console.error('Error fetching sections:', error);
         res.status(500).json({ error: 'Failed to fetch sections' });
+    }
+});
+
+// Create a new class section
+router.post('/sections', async (req, res) => {
+    try {
+        const { grade_level, section_name, room_id, student_capacity } = req.body;
+
+        if (!grade_level || !section_name || !room_id) {
+            return res.status(400).json({ error: 'Grade level, section name, and room are required' });
+        }
+
+        const result = await pool.query(`
+            INSERT INTO class_sections (grade_level, section_name, room_id, student_capacity, is_active)
+            VALUES ($1, $2, $3, $4, true)
+            RETURNING *
+        `, [grade_level, section_name, room_id, student_capacity || 30]);
+
+        res.status(201).json(result.rows[0]);
+    } catch (error) {
+        console.error('Error creating class section:', error);
+        res.status(500).json({ error: 'Failed to create class section' });
     }
 });
 

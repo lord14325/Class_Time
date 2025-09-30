@@ -283,11 +283,56 @@ function Student() {
                 onChange={(e) => setFormData({ ...formData, grade_level: e.target.value })}
                 required
               />
+              <label>Section</label>
+              <input
+                value={formData.section}
+                onChange={(e) => setFormData({ ...formData, section: e.target.value })}
+              />
+              <label>Room</label>
+              <select
+                value={formData.room_id}
+                onChange={(e) => setFormData({ ...formData, room_id: e.target.value })}
+              >
+                <option value="">Select Room</option>
+                {rooms.map((room) => (
+                  <option key={room.id} value={room.id}>
+                    Room {room.room_number} - {room.room_name}
+                  </option>
+                ))}
+              </select>
               <label>Phone</label>
               <input
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               />
+              <label>Address</label>
+              <input
+                value={formData.address}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+              />
+              <label>Enrollment Date</label>
+              <input
+                type="date"
+                value={formData.enrollment_date}
+                onChange={(e) => setFormData({ ...formData, enrollment_date: e.target.value })}
+              />
+              {!editingStudent && (
+                <>
+                  <label>Username*</label>
+                  <input
+                    value={formData.username}
+                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                    required
+                  />
+                  <label>Password*</label>
+                  <input
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    required
+                  />
+                </>
+              )}
               <div className="modal-actions">
                 <button type="button" className="btn cancel" onClick={handleCancel}>Cancel</button>
                 <button type="submit" className="btn">Save</button>
