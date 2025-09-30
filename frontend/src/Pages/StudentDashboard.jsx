@@ -20,8 +20,14 @@ function StudentDashboard() {
           throw new Error("Invalid or missing user ID. Please log in again.");
         }
 
+        // Get current week's Monday
+        const today = new Date();
+        const monday = new Date(today);
+        monday.setDate(today.getDate() - today.getDay() + 1);
+        const weekStart = monday.toISOString().split('T')[0];
+
         const [schedulesRes, announcementsRes] = await Promise.all([
-          fetch(`http://localhost:5000/api/scheduling/student/${userId}/schedule`),
+          fetch(`http://localhost:5000/api/scheduling/student/${userId}/schedule?weekStart=${weekStart}`),
           fetch(`http://localhost:5000/api/announcements`)
         ]);
 

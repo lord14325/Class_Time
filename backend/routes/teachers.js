@@ -5,7 +5,15 @@ const pool = require("../db");
 router.get("/", async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT t.id, t.employee_id, t.phone, t.subject, u.name, u.email
+      SELECT
+        t.id,
+        t.employee_id,
+        t.phone,
+        t.subject,
+        COALESCE(t.subjects, ARRAY[t.subject]) as subjects,
+        array_to_string(COALESCE(t.subjects, ARRAY[t.subject]), ', ') as subjects_display,
+        u.name,
+        u.email
       FROM teachers t
       JOIN users u ON t.user_id = u.id
       ORDER BY u.name
@@ -16,10 +24,45 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/user/:userId", async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        t.id,
+        t.employee_id,
+        t.phone,
+        t.subject,
+        COALESCE(t.subjects, ARRAY[t.subject]) as subjects,
+        u.id as user_id,
+        u.name,
+        u.email
+      FROM teachers t
+      JOIN users u ON t.user_id = u.id
+      WHERE u.id = $1
+    `, [req.params.userId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Teacher not found" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error("Error fetching teacher by user ID:", error);
+    res.status(500).json({ error: "Failed to get teacher" });
+  }
+});
+
 router.get("/:id", async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT t.id, t.employee_id, t.phone, t.subject, u.name, u.email
+      SELECT
+        t.id,
+        t.employee_id,
+        t.phone,
+        t.subject,
+        COALESCE(t.subjects, ARRAY[t.subject]) as subjects,
+        u.name,
+        u.email
       FROM teachers t
       JOIN users u ON t.user_id = u.id
       WHERE t.id = $1
@@ -40,7 +83,8 @@ router.post("/", async (req, res) => {
       password,
       phone,
       employee_id,
-      subject
+      subject,
+      subjects
     } = req.body;
 
 
@@ -52,11 +96,14 @@ router.post("/", async (req, res) => {
 
     const userId = userResult.rows[0].id;
 
+    const teacherSubjects = subjects || [subject];
+    const primarySubject = teacherSubjects[0] || subject;
+
     const teacherResult = await pool.query(`
-      INSERT INTO teachers (user_id, employee_id, phone, subject, created_at)
-      VALUES ($1, $2, $3, $4, NOW())
+      INSERT INTO teachers (user_id, employee_id, phone, subject, subjects, created_at)
+      VALUES ($1, $2, $3, $4, $5, NOW())
       RETURNING *
-    `, [userId, employee_id, phone, subject]);
+    `, [userId, employee_id, phone, primarySubject, teacherSubjects]);
 
     const newTeacher = {
       ...teacherResult.rows[0],
@@ -81,7 +128,8 @@ router.put("/:id", async (req, res) => {
       password,
       phone,
       employee_id,
-      subject
+      subject,
+      subjects
     } = req.body;
 
     const teacherCheck = await pool.query('SELECT user_id FROM teachers WHERE id = $1', [id]);
@@ -98,15 +146,25 @@ router.put("/:id", async (req, res) => {
       WHERE id = $3
     `, [name, email, userId]);
 
+    const teacherSubjects = subjects || [subject];
+    const primarySubject = teacherSubjects[0] || subject;
+
     await pool.query(`
       UPDATE teachers
-      SET employee_id = $1, phone = $2, subject = $3
-      WHERE id = $4
-    `, [employee_id, phone, subject || null, id]);
+      SET employee_id = $1, phone = $2, subject = $3, subjects = $4
+      WHERE id = $5
+    `, [employee_id, phone, primarySubject, teacherSubjects, id]);
 
     const result = await pool.query(`
-      SELECT t.id, t.employee_id, t.phone, t.subject, t.created_at,
-             u.name, u.email
+      SELECT
+        t.id,
+        t.employee_id,
+        t.phone,
+        t.subject,
+        COALESCE(t.subjects, ARRAY[t.subject]) as subjects,
+        t.created_at,
+        u.name,
+        u.email
       FROM teachers t
       JOIN users u ON t.user_id = u.id
       WHERE t.id = $1

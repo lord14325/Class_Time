@@ -15,13 +15,26 @@ function Teacher() {
     phone: "",
     employee_id: "",
     subject: "",
+    subjects: [],
   });
+  const [availableSubjects, setAvailableSubjects] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("");
 
   useEffect(() => {
     fetchTeachers();
+    fetchAvailableSubjects();
   }, []);
+
+  const fetchAvailableSubjects = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/api/scheduling/available-subjects");
+      const data = await response.json();
+      setAvailableSubjects(data);
+    } catch (error) {
+      console.error("Error fetching subjects:", error);
+    }
+  };
 
   const fetchTeachers = async () => {
     const response = await fetch("http://localhost:5000/api/teachers");
@@ -38,9 +51,13 @@ function Teacher() {
       );
     }
     if (selectedSubject) {
-      result = result.filter(
-        (t) => t.subject && t.subject.toLowerCase() === selectedSubject.toLowerCase()
-      );
+      result = result.filter((t) => {
+        // Check both single subject and subjects array
+        if (t.subjects && Array.isArray(t.subjects)) {
+          return t.subjects.some(subj => subj.toLowerCase() === selectedSubject.toLowerCase());
+        }
+        return t.subject && t.subject.toLowerCase() === selectedSubject.toLowerCase();
+      });
     }
     setFilteredTeachers(result);
   }, [searchQuery, selectedSubject, teacher]);
@@ -48,29 +65,47 @@ function Teacher() {
   const handleSave = async (e) => {
     e.preventDefault();
 
-    const url = editingTeacher
-      ? `http://localhost:5000/api/teachers/${editingTeacher.id}`
-      : "http://localhost:5000/api/teachers";
-    const method = editingTeacher ? "PUT" : "POST";
+    // Validation: Check if at least one subject is selected
+    if (!formData.subjects || formData.subjects.length === 0) {
+      alert("Please select at least one subject for the teacher.");
+      return;
+    }
 
-    await fetch(url, {
-      method: method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    });
+    try {
+      const url = editingTeacher
+        ? `http://localhost:5000/api/teachers/${editingTeacher.id}`
+        : "http://localhost:5000/api/teachers";
+      const method = editingTeacher ? "PUT" : "POST";
 
-    fetchTeachers();
-    setShowForm(false);
-    setEditingTeacher(null);
-    setFormData({
-      name: "",
-      email: "",
-      username: "",
-      password: "",
-      phone: "",
-      employee_id: "",
-      subject: "",
-    });
+      const response = await fetch(url, {
+        method: method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save teacher');
+      }
+
+      fetchTeachers();
+      setShowForm(false);
+      setEditingTeacher(null);
+      setFormData({
+        name: "",
+        email: "",
+        username: "",
+        password: "",
+        phone: "",
+        employee_id: "",
+        subject: "",
+        subjects: [],
+      });
+
+      alert(editingTeacher ? "Teacher updated successfully!" : "Teacher created successfully!");
+    } catch (error) {
+      console.error("Error saving teacher:", error);
+      alert("Error saving teacher. Please try again.");
+    }
   };
 
   const handleDelete = async (teacherId) => {
@@ -90,6 +125,7 @@ function Teacher() {
       phone: teacherToEdit.phone || "",
       employee_id: teacherToEdit.employee_id || "",
       subject: teacherToEdit.subject || "",
+      subjects: teacherToEdit.subjects || [teacherToEdit.subject || ""],
     });
     setShowForm(true);
   };
@@ -104,6 +140,7 @@ function Teacher() {
       phone: "",
       employee_id: "",
       subject: "",
+      subjects: [],
     });
     setShowForm(true);
   };
@@ -119,6 +156,7 @@ function Teacher() {
       phone: "",
       employee_id: "",
       subject: "",
+      subjects: [],
     });
   };
 
@@ -172,7 +210,7 @@ function Teacher() {
               <tr key={t.id}>
                 <td>{t.employee_id}</td>
                 <td>{t.name}</td>
-                <td>{t.subject}</td>
+                <td>{t.subjects_display || t.subjects?.join(', ') || t.subject}</td>
                 <td>{t.email}</td>
                 <td>{t.phone}</td>
                 <td>
@@ -198,7 +236,7 @@ function Teacher() {
 
       {showForm && (
         <div className="modal-overlay">
-          <div className="modal">
+          <div className="modal" style={{ maxWidth: '450px', maxHeight: '90vh', overflowY: 'auto' }}>
             <h2>{editingTeacher ? "Edit Teacher" : "Add Teacher"}</h2>
             <form className="modal-form" onSubmit={handleSave}>
               <label>Full Name*</label>
@@ -244,15 +282,79 @@ function Teacher() {
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 required
               />
-              <label>Subject*</label>
-              <input
-                value={formData.subject}
-                onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                required
-              />
+              <label>Subjects*</label>
+              <div style={{
+                border: '1px solid #ddd',
+                padding: '8px',
+                borderRadius: '4px',
+                maxHeight: '100px',
+                overflowY: 'auto',
+                backgroundColor: '#fff',
+                fontSize: '14px'
+              }}>
+                {availableSubjects.length === 0 ? (
+                  <div style={{ color: '#666', fontStyle: 'italic', padding: '4px' }}>Loading subjects...</div>
+                ) : (
+                  availableSubjects.map((subj, idx) => (
+                    <div key={idx} style={{ marginBottom: '3px' }}>
+                      <label style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        cursor: 'pointer',
+                        fontSize: '13px',
+                        padding: '2px',
+                        margin: 0
+                      }}>
+                        <input
+                          type="checkbox"
+                          value={subj}
+                          checked={formData.subjects.includes(subj)}
+                          onChange={(e) => {
+                            let newSubjects;
+                            if (e.target.checked) {
+                              newSubjects = [...formData.subjects, subj];
+                            } else {
+                              newSubjects = formData.subjects.filter(s => s !== subj);
+                            }
+                            setFormData({
+                              ...formData,
+                              subjects: newSubjects,
+                              subject: newSubjects[0] || ''
+                            });
+                          }}
+                          style={{ marginRight: '6px', transform: 'scale(0.9)' }}
+                        />
+                        {subj}
+                      </label>
+                    </div>
+                  ))
+                )}
+              </div>
+              {formData.subjects.length > 0 && (
+                <small style={{ color: '#28a745', fontSize: '12px', marginTop: '5px', display: 'block' }}>
+                  Selected ({formData.subjects.length}): {formData.subjects.join(', ')}
+                </small>
+              )}
+              {formData.subjects.length === 0 && (
+                <small style={{ color: '#dc3545', fontSize: '12px', marginTop: '5px', display: 'block' }}>
+                  Please select at least one subject
+                </small>
+              )}
               <div className="modal-actions">
-                <button type="button" className="btn cancel" onClick={handleCancel}>Cancel</button>
-                <button type="submit" className="btn">Save</button>
+                <button type="button" className="btn cancel" onClick={handleCancel}>
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn"
+                  disabled={formData.subjects.length === 0}
+                  style={{
+                    opacity: formData.subjects.length === 0 ? 0.6 : 1,
+                    cursor: formData.subjects.length === 0 ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  Save
+                </button>
               </div>
             </form>
           </div>

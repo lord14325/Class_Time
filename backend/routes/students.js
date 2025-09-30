@@ -34,6 +34,43 @@ router.get('/', async (req, res) => {
     }
 });
 
+// Get student by user_id
+router.get('/user/:userId', async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const query = `
+            SELECT
+                s.id,
+                s.student_id,
+                s.grade_level,
+                s.section,
+                s.phone,
+                s.address,
+                s.enrollment_date,
+                s.room_id,
+                u.id as user_id,
+                u.name,
+                u.email,
+                u.username,
+                r.room_number
+            FROM students s
+            JOIN users u ON s.user_id = u.id
+            LEFT JOIN rooms r ON s.room_id = r.id
+            WHERE u.id = $1
+        `;
+        const result = await pool.query(query, [userId]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Student not found' });
+        }
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error fetching student by user ID:', error);
+        res.status(500).json({ error: 'Failed to fetch student' });
+    }
+});
+
 // Get student by ID
 router.get('/:id', async (req, res) => {
     try {

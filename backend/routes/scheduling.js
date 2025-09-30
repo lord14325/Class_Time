@@ -65,15 +65,23 @@ router.get('/courses', async (req, res) => {
     }
 });
 
-// Get all teachers grouped by subject
+// Get all teachers with their subjects (supports multiple subjects)
 router.get('/teachers', async (req, res) => {
     try {
         const result = await pool.query(`
-            SELECT t.*, u.name
+            SELECT
+                t.id,
+                t.employee_id,
+                t.user_id,
+                u.name,
+                u.email,
+                t.subject as primary_subject,
+                COALESCE(t.subjects, ARRAY[t.subject]) as subjects,
+                array_to_string(COALESCE(t.subjects, ARRAY[t.subject]), ', ') as subjects_display
             FROM teachers t
             JOIN users u ON t.user_id = u.id
             WHERE u.role = 'teacher'
-            ORDER BY t.subject, u.name
+            ORDER BY u.name
         `);
         res.json(result.rows);
     } catch (error) {
@@ -82,11 +90,29 @@ router.get('/teachers', async (req, res) => {
     }
 });
 
-// Get daily schedule for a specific day
+// Get available subjects for dropdowns
+router.get('/available-subjects', async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT DISTINCT subject as subject_name
+            FROM courses
+            WHERE subject IS NOT NULL AND subject != ''
+            ORDER BY subject
+        `);
+        res.json(result.rows.map(row => row.subject_name));
+    } catch (error) {
+        console.error('Error fetching subjects:', error);
+        res.status(500).json({ error: 'Failed to fetch subjects' });
+    }
+});
+
+// Get daily schedule for a specific day with optional date and semester filtering
 router.get('/schedule/:dayOfWeek', async (req, res) => {
     try {
         const { dayOfWeek } = req.params;
-        const result = await pool.query(`
+        const { weekStart, semester } = req.query;
+
+        let query = `
             SELECT
                 ds.*,
                 cs.grade_level,
@@ -109,9 +135,23 @@ router.get('/schedule/:dayOfWeek', async (req, res) => {
             JOIN teachers t ON ds.teacher_id = t.id
             JOIN users u ON t.user_id = u.id
             LEFT JOIN rooms r ON ds.room_id = r.id
-            WHERE ds.day_of_week = $1 AND ds.is_active = true
-            ORDER BY cs.grade_level, cs.section_name, ts.slot_order
-        `, [dayOfWeek]);
+            WHERE ds.day_of_week = $1 AND ds.is_active = true`;
+
+        const params = [dayOfWeek];
+
+        if (weekStart) {
+            query += ` AND ds.week_start_date = $${params.length + 1}`;
+            params.push(weekStart);
+        }
+
+        if (semester) {
+            query += ` AND ds.semester = $${params.length + 1}`;
+            params.push(semester);
+        }
+
+        query += ` ORDER BY cs.grade_level, cs.section_name, ts.slot_order`;
+
+        const result = await pool.query(query, params);
         res.json(result.rows);
     } catch (error) {
         console.error('Error fetching daily schedule:', error);
@@ -157,24 +197,28 @@ router.post('/schedule', async (req, res) => {
             course_id,
             teacher_id,
             room_id,
-            day_of_week
+            day_of_week,
+            week_start_date,
+            semester
         } = req.body;
 
-        // Check for conflicts
+        // Check for conflicts (same week and semester)
         const conflicts = await pool.query(`
             SELECT 'teacher' as conflict_type, u.name as conflict_name
             FROM daily_schedules ds
             JOIN teachers t ON ds.teacher_id = t.id
             JOIN users u ON t.user_id = u.id
-            WHERE ds.teacher_id = $1 AND ds.time_slot_id = $2 AND ds.day_of_week = $3 AND ds.is_active = true
+            WHERE ds.teacher_id = $1 AND ds.time_slot_id = $2 AND ds.day_of_week = $3
+              AND ds.week_start_date = $5 AND ds.semester = $6 AND ds.is_active = true
 
             UNION
 
             SELECT 'room' as conflict_type, r.room_name as conflict_name
             FROM daily_schedules ds
             JOIN rooms r ON ds.room_id = r.id
-            WHERE ds.room_id = $4 AND ds.time_slot_id = $2 AND ds.day_of_week = $3 AND ds.is_active = true
-        `, [teacher_id, time_slot_id, day_of_week, room_id]);
+            WHERE ds.room_id = $4 AND ds.time_slot_id = $2 AND ds.day_of_week = $3
+              AND ds.week_start_date = $5 AND ds.semester = $6 AND ds.is_active = true
+        `, [teacher_id, time_slot_id, day_of_week, room_id, week_start_date, semester]);
 
         if (conflicts.rows.length > 0) {
             return res.status(400).json({
@@ -185,15 +229,15 @@ router.post('/schedule', async (req, res) => {
 
         // Insert or update the schedule
         const result = await pool.query(`
-            INSERT INTO daily_schedules (class_section_id, time_slot_id, course_id, teacher_id, room_id, day_of_week)
-            VALUES ($1, $2, $3, $4, $5, $6)
-            ON CONFLICT (class_section_id, time_slot_id, day_of_week)
+            INSERT INTO daily_schedules (class_section_id, time_slot_id, course_id, teacher_id, room_id, day_of_week, week_start_date, semester)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            ON CONFLICT (class_section_id, time_slot_id, day_of_week, week_start_date, semester)
             DO UPDATE SET
                 course_id = EXCLUDED.course_id,
                 teacher_id = EXCLUDED.teacher_id,
                 room_id = EXCLUDED.room_id
             RETURNING *
-        `, [class_section_id, time_slot_id, course_id, teacher_id, room_id, day_of_week]);
+        `, [class_section_id, time_slot_id, course_id, teacher_id, room_id, day_of_week, week_start_date, semester]);
 
         res.status(201).json(result.rows[0]);
     } catch (error) {
@@ -251,13 +295,13 @@ router.post('/schedule/bulk-copy', async (req, res) => {
 // Copy entire day schedule to multiple days (for all class sections)
 router.post('/schedule/copy-day-to-week', async (req, res) => {
     try {
-        const { from_day, to_days } = req.body;
+        const { from_day, to_days, week_start_date, semester } = req.body;
 
         const sourceSchedules = await pool.query(`
             SELECT class_section_id, time_slot_id, course_id, teacher_id, room_id
             FROM daily_schedules
-            WHERE day_of_week = $1 AND is_active = true
-        `, [from_day]);
+            WHERE day_of_week = $1 AND week_start_date = $2 AND semester = $3 AND is_active = true
+        `, [from_day, week_start_date, semester]);
 
         if (sourceSchedules.rows.length === 0) {
             return res.status(400).json({ error: 'No schedules found for the source day' });
@@ -268,14 +312,14 @@ router.post('/schedule/copy-day-to-week', async (req, res) => {
         const errors = [];
 
         for (const day of to_days) {
-            await pool.query('DELETE FROM daily_schedules WHERE day_of_week = $1', [day]);
+            await pool.query('DELETE FROM daily_schedules WHERE day_of_week = $1 AND week_start_date = $2 AND semester = $3', [day, week_start_date, semester]);
 
             for (const schedule of sourceSchedules.rows) {
                 try {
                     await pool.query(`
-                        INSERT INTO daily_schedules (class_section_id, time_slot_id, course_id, teacher_id, room_id, day_of_week)
-                        VALUES ($1, $2, $3, $4, $5, $6)
-                    `, [schedule.class_section_id, schedule.time_slot_id, schedule.course_id, schedule.teacher_id, schedule.room_id, day]);
+                        INSERT INTO daily_schedules (class_section_id, time_slot_id, course_id, teacher_id, room_id, day_of_week, week_start_date, semester)
+                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                    `, [schedule.class_section_id, schedule.time_slot_id, schedule.course_id, schedule.teacher_id, schedule.room_id, day, week_start_date, semester]);
                     copiedCount++;
                 } catch (insertError) {
                     errorCount++;
@@ -410,6 +454,7 @@ router.delete('/timeslots/:id', async (req, res) => {
 router.get("/student/:userId/schedule", async (req, res) => {
   try {
     const { userId } = req.params;
+    const { weekStart } = req.query;
     const userIdNum = parseInt(userId);
 
     if (!userIdNum || isNaN(userIdNum)) {
@@ -437,7 +482,7 @@ router.get("/student/:userId/schedule", async (req, res) => {
 
     // Step 2: Find matching class section
     const classSectionRes = await pool.query(
-      `SELECT id FROM class_sections 
+      `SELECT id FROM class_sections
        WHERE grade_level = $1 AND section_name = $2 AND is_active = true`,
       [grade_level, section]
     );
@@ -449,8 +494,8 @@ router.get("/student/:userId/schedule", async (req, res) => {
     const classSectionId = classSectionRes.rows[0].id;
 
     // Step 3: Fetch schedule for this class section
-    const query = `
-      SELECT 
+    let query = `
+      SELECT
         ds.day_of_week,
         ts.start_time,
         ts.end_time,
@@ -468,10 +513,19 @@ router.get("/student/:userId/schedule", async (req, res) => {
       LEFT JOIN rooms r ON ds.room_id = r.id
       WHERE ds.class_section_id = $1
         AND ds.is_active = true
-      ORDER BY ds.day_of_week, ts.slot_order
     `;
 
-    const result = await pool.query(query, [classSectionId]);
+    const queryParams = [classSectionId];
+
+    // Filter by week if weekStart is provided
+    if (weekStart) {
+      query += ` AND ds.week_start_date = $2`;
+      queryParams.push(weekStart);
+    }
+
+    query += ` ORDER BY ds.day_of_week, ts.slot_order`;
+
+    const result = await pool.query(query, queryParams);
     res.json(result.rows);
   } catch (error) {
     console.error("❌ Student schedule error:", error);
@@ -488,6 +542,8 @@ router.get("/student/:userId/schedule", async (req, res) => {
 router.get('/teacher-by-user/:userId/schedule', async (req, res) => {
   try {
     const userId = parseInt(req.params.userId, 10);
+    const { weekStart } = req.query;
+
     if (!userId || isNaN(userId)) {
       return res.status(400).json({ error: 'Invalid userId' });
     }
@@ -500,8 +556,8 @@ router.get('/teacher-by-user/:userId/schedule', async (req, res) => {
     const teacherId = teacherRes.rows[0].id;
 
     // Fetch schedule using the teacher id
-    const query = `
-      SELECT 
+    let query = `
+      SELECT
         ds.day_of_week,
         ts.start_time,
         ts.end_time,
@@ -520,17 +576,243 @@ router.get('/teacher-by-user/:userId/schedule', async (req, res) => {
       LEFT JOIN rooms r ON cs.room_id = r.id
       LEFT JOIN teachers t ON ds.teacher_id = t.id
       LEFT JOIN users u ON t.user_id = u.id
-      WHERE ds.teacher_id = $1 
+      WHERE ds.teacher_id = $1
         AND ds.is_active = true
         AND ds.day_of_week BETWEEN 0 AND 6
-      ORDER BY ds.day_of_week, ts.slot_order
     `;
-    const schedRes = await pool.query(query, [teacherId]);
+
+    const queryParams = [teacherId];
+
+    // Filter by week if weekStart is provided
+    if (weekStart) {
+      query += ` AND ds.week_start_date = $2`;
+      queryParams.push(weekStart);
+    }
+
+    query += ` ORDER BY ds.day_of_week, ts.slot_order`;
+
+    const schedRes = await pool.query(query, queryParams);
     return res.json(schedRes.rows || []);
   } catch (err) {
     console.error('Error in teacher-by-user schedule route:', err);
     return res.status(500).json({ error: 'Internal server error' });
   }
+});
+
+// Copy current week to entire semester
+router.post('/schedule/copy-week-to-semester', async (req, res) => {
+    try {
+        const { source_week_start, semester, target_weeks } = req.body;
+
+        if (!source_week_start || !semester || !target_weeks || target_weeks.length === 0) {
+            return res.status(400).json({ error: 'source_week_start, semester, and target_weeks are required' });
+        }
+
+        // Get source week schedules
+        const sourceSchedules = await pool.query(`
+            SELECT class_section_id, time_slot_id, course_id, teacher_id, room_id, day_of_week
+            FROM daily_schedules
+            WHERE week_start_date = $1 AND semester = $2 AND is_active = true
+        `, [source_week_start, semester]);
+
+        if (sourceSchedules.rows.length === 0) {
+            return res.status(400).json({ error: 'No schedules found for the source week' });
+        }
+
+        let copiedCount = 0;
+        let errorCount = 0;
+        const errors = [];
+
+        // Copy to each target week
+        for (const targetWeek of target_weeks) {
+            // Delete existing schedules for target week
+            await pool.query('DELETE FROM daily_schedules WHERE week_start_date = $1 AND semester = $2', [targetWeek, semester]);
+
+            // Insert schedules for target week
+            for (const schedule of sourceSchedules.rows) {
+                try {
+                    await pool.query(`
+                        INSERT INTO daily_schedules (class_section_id, time_slot_id, course_id, teacher_id, room_id, day_of_week, week_start_date, semester)
+                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                    `, [schedule.class_section_id, schedule.time_slot_id, schedule.course_id, schedule.teacher_id, schedule.room_id, schedule.day_of_week, targetWeek, semester]);
+                    copiedCount++;
+                } catch (insertError) {
+                    errorCount++;
+                    errors.push(`Week ${targetWeek}, Day ${schedule.day_of_week}: ${insertError.message}`);
+                }
+            }
+        }
+
+        res.json({
+            message: `Successfully copied ${copiedCount} schedule entries to ${target_weeks.length} weeks in ${semester}. ${errorCount} errors occurred.`,
+            copiedCount,
+            errorCount,
+            targetWeeks: target_weeks.length,
+            errors: errors.slice(0, 10)
+        });
+    } catch (error) {
+        console.error('Error copying week to semester:', error);
+        res.status(500).json({ error: 'Failed to copy week to semester: ' + error.message });
+    }
+});
+
+// Get available semesters
+router.get('/semesters', async (req, res) => {
+    try {
+        // First check if semesters table exists, if not, return default semesters
+        const checkTable = await pool.query(`
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables
+                WHERE table_name = 'semesters'
+            );
+        `);
+
+        if (checkTable.rows[0].exists) {
+            // Get from semesters table
+            const result = await pool.query(`
+                SELECT id, semester_name, start_date, end_date, is_active
+                FROM semesters
+                WHERE is_active = true
+                ORDER BY start_date DESC
+            `);
+
+            res.json(result.rows.map(row => ({
+                id: row.id,
+                value: row.semester_name,
+                label: row.semester_name,
+                start_date: row.start_date,
+                end_date: row.end_date,
+                is_active: row.is_active
+            })));
+        } else {
+            // Fallback to old method
+            const result = await pool.query(`
+                SELECT DISTINCT semester
+                FROM daily_schedules
+                WHERE semester IS NOT NULL
+                ORDER BY semester DESC
+            `);
+
+            const semesters = result.rows.map(row => row.semester);
+            const currentYear = new Date().getFullYear();
+            const commonSemesters = [
+                `${currentYear}-${(currentYear + 1).toString().slice(-2)}`,
+                `${currentYear - 1}-${currentYear.toString().slice(-2)}`,
+                `${currentYear + 1}-${(currentYear + 2).toString().slice(-2)}`
+            ];
+
+            const allSemesters = [...new Set([...semesters, ...commonSemesters])].sort().reverse();
+
+            res.json(allSemesters.map(semester => ({ value: semester, label: `Academic Year ${semester}` })));
+        }
+    } catch (error) {
+        console.error('Error fetching semesters:', error);
+        res.status(500).json({ error: 'Failed to fetch semesters' });
+    }
+});
+
+// Create a new semester
+router.post('/semesters', async (req, res) => {
+    try {
+        const { semester_name, start_date, end_date } = req.body;
+
+        if (!semester_name || !start_date || !end_date) {
+            return res.status(400).json({ error: 'All fields are required' });
+        }
+
+        // Create semesters table if it doesn't exist
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS semesters (
+                id SERIAL PRIMARY KEY,
+                semester_name VARCHAR(50) UNIQUE NOT NULL,
+                start_date DATE NOT NULL,
+                end_date DATE NOT NULL,
+                is_active BOOLEAN DEFAULT true,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        const result = await pool.query(`
+            INSERT INTO semesters (semester_name, start_date, end_date, is_active)
+            VALUES ($1, $2, $3, true)
+            RETURNING *
+        `, [semester_name, start_date, end_date]);
+
+        res.status(201).json(result.rows[0]);
+    } catch (error) {
+        console.error('Error creating semester:', error);
+        if (error.code === '23505') {
+            res.status(400).json({ error: 'Semester name already exists' });
+        } else {
+            res.status(500).json({ error: 'Failed to create semester' });
+        }
+    }
+});
+
+// Update a semester
+router.put('/semesters/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { semester_name, start_date, end_date } = req.body;
+
+        if (!semester_name || !start_date || !end_date) {
+            return res.status(400).json({ error: 'All fields are required' });
+        }
+
+        const result = await pool.query(`
+            UPDATE semesters
+            SET semester_name = $1, start_date = $2, end_date = $3
+            WHERE id = $4 AND is_active = true
+            RETURNING *
+        `, [semester_name, start_date, end_date, id]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Semester not found' });
+        }
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error updating semester:', error);
+        if (error.code === '23505') {
+            res.status(400).json({ error: 'Semester name already exists' });
+        } else {
+            res.status(500).json({ error: 'Failed to update semester' });
+        }
+    }
+});
+
+// Delete a semester
+router.delete('/semesters/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Check if semester is used in any schedules
+        const scheduleCheck = await pool.query(`
+            SELECT COUNT(*) as count
+            FROM daily_schedules
+            WHERE semester = (SELECT semester_name FROM semesters WHERE id = $1)
+            AND is_active = true
+        `, [id]);
+
+        if (parseInt(scheduleCheck.rows[0].count) > 0) {
+            return res.status(400).json({
+                error: 'Cannot delete semester that is currently used in schedules'
+            });
+        }
+
+        const result = await pool.query(`
+            UPDATE semesters SET is_active = false WHERE id = $1 RETURNING *
+        `, [id]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Semester not found' });
+        }
+
+        res.json({ message: 'Semester deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting semester:', error);
+        res.status(500).json({ error: 'Failed to delete semester' });
+    }
 });
 
 module.exports = router;

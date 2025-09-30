@@ -48,6 +48,7 @@
 .control-group {
     display: flex;
     flex-direction: column;
+    min-width: 150px;
     gap: 5px;
 }
 
@@ -56,10 +57,18 @@
     color: #2c3e50;
 }
 
-.day-select {
+.day-select, .week-select, .semester-select {
     padding: 8px 12px;
     border: 1px solid #ddd;
     border-radius: 4px;
+    min-width: 150px;
+}
+
+.week-select {
+    min-width: 180px;
+}
+
+.semester-select {
     min-width: 200px;
 }
 
@@ -139,6 +148,26 @@
     background-color: #0056b3;
 }
 
+.copy-semester-btn {
+    padding: 10px 20px;
+    background-color: #6f42c1;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.copy-semester-btn:hover:not(:disabled) {
+    background-color: #5a2d91;
+}
+
+.copy-semester-btn:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+
 .manage-timeslots-btn {
     padding: 10px 20px;
     background-color: #6f42c1;
@@ -154,6 +183,25 @@
 }
 
 .manage-timeslots-btn:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+
+.manage-semesters-btn {
+    padding: 10px 20px;
+    background-color: #17a2b8;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.manage-semesters-btn:hover:not(:disabled) {
+    background-color: #138496;
+}
+
+.manage-semesters-btn:disabled {
     background-color: #6c757d;
     cursor: not-allowed;
 }
@@ -588,6 +636,183 @@
     cursor: not-allowed;
 }
 
+/* ===== SEMESTER MANAGEMENT STYLES ===== */
+.semester-modal {
+    width: 90%;
+    max-width: 800px;
+}
+
+.semester-form-section {
+    margin-bottom: 30px;
+    padding: 20px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+
+.semester-form-section h4 {
+    margin-bottom: 15px;
+    color: #2c3e50;
+}
+
+.existing-semesters {
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+}
+
+.existing-semesters h4 {
+    margin-bottom: 15px;
+    color: #2c3e50;
+}
+
+.semesters-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.semester-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+
+.semester-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.semester-name {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.semester-dates {
+    color: #007bff;
+    font-size: 14px;
+}
+
+.semester-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.edit-semester-btn {
+    padding: 6px 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.edit-semester-btn:hover:not(:disabled) {
+    background-color: #0056b3;
+}
+
+.delete-semester-btn {
+    padding: 6px 12px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.delete-semester-btn:hover:not(:disabled) {
+    background-color: #c82333;
+}
+
+.save-semester-btn {
+    padding: 8px 16px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-right: 10px;
+}
+
+.save-semester-btn:hover:not(:disabled) {
+    background-color: #218838;
+}
+
+.save-semester-btn:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+
+.edit-semester-btn:disabled,
+.delete-semester-btn:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+
+/* ===== BULK GRADE SCHEDULING STYLES ===== */
+.bulk-grade-scheduling {
+    margin-top: 20px;
+}
+
+.bulk-schedule-grid {
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    min-width: 800px;
+}
+
+.bulk-cell {
+    padding: 8px;
+    border: 1px solid #ddd;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.bulk-cell select {
+    font-size: 12px;
+    padding: 4px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 100%;
+}
+
+.bulk-cell .course-info {
+    background-color: #f8f9fa;
+    padding: 3px 5px;
+    border-radius: 3px;
+    border-left: 3px solid #007bff;
+}
+
+.bulk-cell .course-name {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 10px;
+}
+
+.bulk-cell .teacher-name {
+    color: #666;
+    font-size: 9px;
+}
+
+.mode-select, .grade-select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    min-width: 180px;
+    background-color: white;
+}
+
 @media (max-width: 768px) {
     .admin-scheduling-container {
         padding: 10px;
@@ -614,6 +839,21 @@
     }
 
     .timeslot-actions {
+        justify-content: center;
+    }
+
+    .semester-modal {
+        width: 95%;
+        margin: 10px;
+    }
+
+    .semester-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .semester-actions {
         justify-content: center;
     }
 }
