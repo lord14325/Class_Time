@@ -75,6 +75,12 @@ const Schedule = () => {
         }
     }, [semesters]);
 
+    useEffect(() => {
+        if (schedulingMode === 'bulk-grade' && selectedSection) {
+            loadExistingBulkSchedules();
+        }
+    }, [selectedSection, selectedWeekStart, selectedSemester, bulkScheduleDays]);
+
     // API Calls
     const fetchPersonalSchedule = async () => {
         setPersonalLoading(true);
@@ -146,6 +152,41 @@ const Schedule = () => {
             setAllSchedules(scheduleMap);
         } catch (error) {
             console.error('Error fetching schedules:', error);
+        }
+    };
+
+    const loadExistingBulkSchedules = async () => {
+        if (!selectedSection) return;
+
+        try {
+            const newBulkData = {};
+
+            // Fetch schedules for each selected day
+            for (const day of bulkScheduleDays) {
+                const params = new URLSearchParams({
+                    weekStart: selectedWeekStart,
+                    semester: selectedSemester
+                });
+                const response = await axios.get(
+                    `http://localhost:5000/api/scheduling/schedule/${day}?${params}`
+                );
+
+                // Filter schedules for the selected section
+                response.data.forEach(schedule => {
+                    if (schedule.class_section_id == selectedSection) {
+                        const key = `${schedule.time_slot_id}-${day}`;
+                        newBulkData[key] = {
+                            course_id: schedule.course_id,
+                            teacher_id: schedule.teacher_id
+                        };
+                    }
+                });
+            }
+
+            setBulkScheduleData(newBulkData);
+        } catch (error) {
+            console.error('Error loading existing bulk schedules:', error);
+            setBulkScheduleData({});
         }
     };
 
@@ -778,7 +819,6 @@ const Schedule = () => {
                                     value={selectedSection}
                                     onChange={(e) => {
                                         setSelectedSection(e.target.value);
-                                        setBulkScheduleData({});
                                     }}
                                     className="grade-select"
                                 >
@@ -804,7 +844,6 @@ const Schedule = () => {
                                                         ? [...bulkScheduleDays, day.value].sort()
                                                         : bulkScheduleDays.filter(d => d !== day.value)
                                                     );
-                                                    setBulkScheduleData({});
                                                 }}
                                                 style={{ marginRight: '3px' }}
                                             />

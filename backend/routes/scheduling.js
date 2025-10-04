@@ -17,9 +17,30 @@ router.get('/timeslots', async (req, res) => {
     }
 });
 
-// Get all class sections
+// Get all class sections (auto-syncs with rooms)
 router.get('/sections', async (req, res) => {
     try {
+        // Auto-sync: Create class_sections for rooms that don't have them
+        await pool.query(`
+            INSERT INTO class_sections (grade_level, section_name, room_id, student_capacity, is_active)
+            SELECT
+                s.grade_level,
+                s.section,
+                r.id,
+                30,
+                true
+            FROM rooms r
+            LEFT JOIN students s ON s.room_id = r.id
+            WHERE r.is_available = true
+            AND NOT EXISTS (
+                SELECT 1 FROM class_sections cs
+                WHERE cs.room_id = r.id AND cs.is_active = true
+            )
+            AND s.grade_level IS NOT NULL
+            AND s.section IS NOT NULL
+            GROUP BY r.id, s.grade_level, s.section
+        `);
+
         // Return all class sections
         const result = await pool.query(`
             SELECT cs.*, r.room_number, r.room_name

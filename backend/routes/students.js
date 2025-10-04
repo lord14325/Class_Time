@@ -177,6 +177,21 @@ router.post('/', async (req, res) => {
                 ]
             );
 
+            // Auto-sync class_sections after student creation
+            if (room_id && grade_level && section) {
+                const checkExists = await pool.query(`
+                    SELECT id FROM class_sections
+                    WHERE room_id = $1 AND grade_level = $2 AND section_name = $3 AND is_active = true
+                `, [room_id, grade_level, section]);
+
+                if (checkExists.rows.length === 0) {
+                    await pool.query(`
+                        INSERT INTO class_sections (grade_level, section_name, room_id, student_capacity, is_active)
+                        VALUES ($1, $2, $3, 30, true)
+                    `, [grade_level, section, room_id]);
+                }
+            }
+
             await pool.query('COMMIT');
 
             // Fetch complete student data
@@ -272,6 +287,21 @@ router.put('/:id', async (req, res) => {
                  WHERE id = $8`,
                 [student_id, grade_level, phone, address, enrollment_date, room_id, section, id]
             );
+
+            // Auto-sync class_sections after student update
+            if (room_id && grade_level && section) {
+                const checkExists = await pool.query(`
+                    SELECT id FROM class_sections
+                    WHERE room_id = $1 AND grade_level = $2 AND section_name = $3 AND is_active = true
+                `, [room_id, grade_level, section]);
+
+                if (checkExists.rows.length === 0) {
+                    await pool.query(`
+                        INSERT INTO class_sections (grade_level, section_name, room_id, student_capacity, is_active)
+                        VALUES ($1, $2, $3, 30, true)
+                    `, [grade_level, section, room_id]);
+                }
+            }
 
             await pool.query('COMMIT');
 
