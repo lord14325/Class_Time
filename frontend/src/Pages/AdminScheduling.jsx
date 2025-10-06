@@ -586,6 +586,33 @@ const Schedule = () => {
         }
     };
 
+    const deleteBulkSchedule = async () => {
+        if (role !== "admin" || !selectedSection) return;
+        const section = classSections.find(s => s.id == selectedSection);
+        if (!section) {
+            alert('Selected section not found.');
+            return;
+        }
+
+        if (!window.confirm(`Are you sure you want to delete all schedules for Room ${section.room_number} - ${section.room_name} (${section.grade_level} ${section.section_name}) in the selected week?\n\nThis action cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            const response = await axios.delete(
+                `http://localhost:5000/api/scheduling/schedule/section/${selectedSection}/week/${selectedWeekStart}?semester=${selectedSemester}`
+            );
+
+            setBulkScheduleData({});
+            loadExistingBulkSchedules();
+            fetchAllSchedules();
+            alert(response.data.message || 'Schedules deleted successfully');
+        } catch (error) {
+            console.error('Error deleting bulk schedule:', error);
+            alert('Error deleting schedules. Please try again.');
+        }
+    };
+
     // Render Functions
     const renderPersonalSchedule = () => {
         if (personalLoading) return <div className="loading">Loading your schedule...</div>;
@@ -806,6 +833,14 @@ const Schedule = () => {
                         disabled={Object.keys(bulkScheduleData).length === 0}
                     >
                         Clear All
+                    </button>
+                    {' '}
+                    <button
+                        onClick={deleteBulkSchedule}
+                        className="copy-week-btn"
+                        disabled={!selectedSection}
+                    >
+                        Delete Week Schedule
                     </button>
                     <div className="bulk-assignments-count">
                         {Object.keys(bulkScheduleData).length} schedule assignments configured

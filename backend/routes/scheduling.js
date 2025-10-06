@@ -749,6 +749,11 @@ router.post('/semesters', async (req, res) => {
             return res.status(400).json({ error: 'All fields are required' });
         }
 
+        // Validate that end_date is after start_date
+        if (new Date(end_date) <= new Date(start_date)) {
+            return res.status(400).json({ error: 'End date must be after start date' });
+        }
+
         // Create semesters table if it doesn't exist
         await pool.query(`
             CREATE TABLE IF NOT EXISTS semesters (
@@ -760,6 +765,25 @@ router.post('/semesters', async (req, res) => {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
+
+        // Check for overlapping semesters
+        const overlapCheck = await pool.query(`
+            SELECT semester_name, start_date, end_date
+            FROM semesters
+            WHERE is_active = true
+            AND (
+                (start_date <= $1 AND end_date >= $1) OR
+                (start_date <= $2 AND end_date >= $2) OR
+                (start_date >= $1 AND end_date <= $2)
+            )
+        `, [start_date, end_date]);
+
+        if (overlapCheck.rows.length > 0) {
+            const overlapping = overlapCheck.rows[0];
+            return res.status(400).json({
+                error: `Semester dates overlap with existing semester "${overlapping.semester_name}" (${overlapping.start_date.toISOString().split('T')[0]} to ${overlapping.end_date.toISOString().split('T')[0]})`
+            });
+        }
 
         const result = await pool.query(`
             INSERT INTO semesters (semester_name, start_date, end_date, is_active)
@@ -786,6 +810,31 @@ router.put('/semesters/:id', async (req, res) => {
 
         if (!semester_name || !start_date || !end_date) {
             return res.status(400).json({ error: 'All fields are required' });
+        }
+
+        // Validate that end_date is after start_date
+        if (new Date(end_date) <= new Date(start_date)) {
+            return res.status(400).json({ error: 'End date must be after start date' });
+        }
+
+        // Check for overlapping semesters (excluding the current semester being updated)
+        const overlapCheck = await pool.query(`
+            SELECT semester_name, start_date, end_date
+            FROM semesters
+            WHERE is_active = true
+            AND id != $1
+            AND (
+                (start_date <= $2 AND end_date >= $2) OR
+                (start_date <= $3 AND end_date >= $3) OR
+                (start_date >= $2 AND end_date <= $3)
+            )
+        `, [id, start_date, end_date]);
+
+        if (overlapCheck.rows.length > 0) {
+            const overlapping = overlapCheck.rows[0];
+            return res.status(400).json({
+                error: `Semester dates overlap with existing semester "${overlapping.semester_name}" (${overlapping.start_date.toISOString().split('T')[0]} to ${overlapping.end_date.toISOString().split('T')[0]})`
+            });
         }
 
         const result = await pool.query(`
@@ -841,6 +890,32 @@ router.delete('/semesters/:id', async (req, res) => {
     } catch (error) {
         console.error('Error deleting semester:', error);
         res.status(500).json({ error: 'Failed to delete semester' });
+    }
+});
+
+// Delete schedules for a specific section in a specific week
+router.delete('/schedule/section/:sectionId/week/:weekStart', async (req, res) => {
+    try {
+        const { sectionId, weekStart } = req.params;
+        const { semester } = req.query;
+
+        if (!semester) {
+            return res.status(400).json({ error: 'Semester is required' });
+        }
+
+        const result = await pool.query(`
+            DELETE FROM daily_schedules
+            WHERE class_section_id = $1 AND week_start_date = $2 AND semester = $3
+            RETURNING *
+        `, [sectionId, weekStart, semester]);
+
+        res.json({
+            message: `Successfully deleted ${result.rows.length} schedule entries`,
+            deletedCount: result.rows.length
+        });
+    } catch (error) {
+        console.error('Error deleting section schedules:', error);
+        res.status(500).json({ error: 'Failed to delete schedules' });
     }
 });
 
