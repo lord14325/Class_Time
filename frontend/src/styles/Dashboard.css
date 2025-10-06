@@ -1,0 +1,58 @@
+
+/* welcome heading */
+.dashboard-welcome h1 {
+  font-size: 2rem;
+  font-weight: lighter;
+  margin: 0 0 60px;
+}
+/* stats section */
+.stats {
+  display: flex;
+  gap: 30px;
+  margin: 0 0 60px;
+  flex-wrap: wrap; /* wrap on smaller screens */
+}
+/* quick actions (matches JSX className="quick-actions") */
+.quick-actions {
+  margin-top: 30px;
+  margin-bottom: 30px;
+}
+
+.quick-actions h2 {
+  font-size: 1.9rem;
+  margin-bottom: 30px;
+  font-weight: lighter;
+}
+
+.quick-actions ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.quick-actions li { 
+  font-size: 1rem;
+  margin-bottom: 30px;
+}
+
+.quick-actions a {
+  color: #007bff;
+  font-style: italic;
+  text-decoration: underline;
+}
+
+
+/* Responsive: stack layout on narrow screens */
+@media (max-width: 900px) {
+  .dashboard-layout {
+    flex-direction: column;
+  }
+  .sidebar {
+    width: 100%;
+    flex: 0 0 auto;
+    border-right: none;
+    border-bottom: 1px solid #ddd;
+  }
+  .stats {
+    justify-content: center;
+  }
+}

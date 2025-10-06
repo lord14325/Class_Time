@@ -1,0 +1,108 @@
+
+.login-container {
+  max-width: 400px;
+  margin: 40px auto;
+  text-align: center;
+}
+
+.login-title {
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+hr {
+  border: none;
+  height: 2px;
+  background-color: black; 
+  width: 120%;         
+  margin-left: -10%; 
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  margin-top: 20px;
+  gap: 15px;
+  text-align: left;
+}
+
+.login-form label {
+  font-weight: bold;
+}
+
+.login-form input {
+  padding: 10px;
+  border: 2px solid black;
+  border-radius: 3px;
+}
+.login-form input:focus {
+    outline: none;
+    border-color: var(--beige);
+    box-shadow: 0 0 5px var(--beige);
+}
+
+.form-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.login-button {
+  background-color: var(--beige);
+  border: none;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.login-button:hover {
+  opacity: 0.9;
+}
+
+.login_icon {
+    font-size: 1.2rem;
+    vertical-align: middle;
+}
+
+
+/* MOBILE DEVICES(MAX WIDTH:480px) */
+@media (max-width: 480px) {
+  .login-container {
+    max-width: 95%;
+    margin: 15px auto;
+    padding: 10px;
+  }
+
+  .login-title {
+    font-size: 1.5rem;
+  }
+
+  hr {
+    width: 100%;   /* don’t overflow on very small screens */
+    margin-left: 0;
+  }
+
+  .login-form {
+    gap: 10px;
+  }
+
+  .login-form label {
+    font-size: 0.9rem;
+  }
+
+  .login-form input {
+    font-size: 0.9rem;
+    padding: 7px;
+  }
+
+  .login-button {
+    font-size: 0.9rem;
+    padding: 8px;
+  }
+
+  .login_icon {
+    font-size: 1rem;
+  }
+}

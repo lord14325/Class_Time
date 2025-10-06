@@ -1,0 +1,95 @@
+
+.container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 48px 20px;
+  text-align: center;
+}
+.container-top { 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+    margin-bottom: 12px; 
+}
+.icon-calendar { 
+    width: 15%; 
+    height: 15%; 
+    margin-bottom: 5px;
+    display: block; 
+}
+.brand { 
+    font-size: 2.25rem; 
+    margin: 6px 0 0; 
+    font-weight: 700; 
+  }
+.tagline { 
+    margin: 8px 0 18px; 
+    color: var(--muted); 
+    font-size: 1rem; 
+}
+.iam { 
+    margin-top: 8px; 
+    font-style: italic; 
+    font-weight: 600; 
+}
+
+.role-grid {
+  display: flex;
+  gap: 3.2rem;
+  justify-content: center;
+  margin-top: 22px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+/* each role button */
+.role-card {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.role-circle {
+    flex-direction: column;
+    width: var(--circle-size);
+    height: var(--circle-size);
+    border-radius: 50%;
+    background: var(--beige);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 20px rgba(12,12,12,0.07);
+    transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+}
+
+.role-circle:hover {
+  transform: scale(1.1) translateY(2px);
+  box-shadow: 0 0 8px black;
+  background: transparent;
+}
+/* svg icons inside circle */
+.role-icon { 
+    width: 45%; 
+    height: 45%; 
+    color: #000; 
+    margin-bottom: 0.5rem;
+}
+
+.role-label { 
+    font-size: 1.15rem; 
+    font-weight: 500;
+    text-align: center;
+}
+
+/* Responsive: stack on small screens */
+@media (max-width: 640px) {
+  .role-grid { gap: 12px; }
+  :root { --circle-size: 120px; }
+}

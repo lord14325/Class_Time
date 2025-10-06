@@ -1,0 +1,1067 @@
+.admin-scheduling-container {
+    padding: 20px;
+    margin: 0 auto;
+    width: 100%;
+    overflow-x: auto;
+}
+
+.scheduling-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.scheduling-header h1 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.message {
+    padding: 10px;
+    margin: 20px 0;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.message.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.message.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.scheduling-controls {
+    display: flex;
+    gap: 20px;
+    align-items: end;
+    margin-bottom: 30px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    flex-wrap: wrap;
+}
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 150px;
+    gap: 5px;
+}
+
+.control-group label {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.day-select, .week-select, .semester-select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    min-width: 150px;
+}
+
+.week-select {
+    min-width: 180px;
+}
+
+.semester-select {
+    min-width: 200px;
+}
+
+.legend {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+}
+
+.legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+}
+
+.draft-color {
+    background-color: #fff3cd;
+    border-color: #ffc107;
+}
+
+.conflict-color {
+    background-color: #f8d7da;
+    border-color: #dc3545;
+}
+
+.saved-color {
+    background-color: #d4edda;
+    border-color: #28a745;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.save-all-btn {
+    padding: 10px 20px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    min-width: 180px;
+}
+
+.save-all-btn:hover:not(:disabled) {
+    background-color: #218838;
+}
+
+.save-all-btn:disabled, .copy-week-btn:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+
+.copy-week-btn {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.copy-week-btn:hover:not(:disabled) {
+    background-color: #0056b3;
+}
+
+.copy-semester-btn {
+    padding: 10px 20px;
+    background-color: #6f42c1;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.copy-semester-btn:hover:not(:disabled) {
+    background-color: #5a2d91;
+}
+
+.copy-semester-btn:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+
+.manage-timeslots-btn {
+    padding: 10px 20px;
+    background-color: #6f42c1;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.manage-timeslots-btn:hover:not(:disabled) {
+    background-color: #5a32a3;
+}
+
+.manage-timeslots-btn:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+
+.manage-semesters-btn {
+    padding: 10px 20px;
+    background-color: #17a2b8;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.manage-semesters-btn:hover:not(:disabled) {
+    background-color: #138496;
+}
+
+.manage-semesters-btn:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+
+.schedule-master-grid {
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    min-width: 1400px;
+}
+
+.grid-header {
+    display: grid;
+    grid-template-columns: 150px repeat(auto-fit, minmax(120px, 1fr));
+    background-color: #2c3e50;
+    color: white;
+}
+
+.header-cell {
+    padding: 15px 10px;
+    font-weight: 600;
+    text-align: center;
+    border-right: 1px solid #34495e;
+}
+
+.time-header {
+    background-color: #1a252f;
+}
+
+.section-header {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-size: 14px;
+}
+
+.room-info {
+    font-size: 11px;
+    color: #bdc3c7;
+    font-weight: normal;
+}
+
+.grid-row {
+    display: grid;
+    grid-template-columns: 150px repeat(auto-fit, minmax(120px, 1fr));
+    border-bottom: 1px solid #eee;
+}
+
+.grid-row:hover {
+    background-color: #f8f9fa;
+}
+
+.time-cell {
+    padding: 15px 10px;
+    background-color: #f8f9fa;
+    border-right: 2px solid #dee2e6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.time-range {
+    font-size: 11px;
+    color: #6c757d;
+    margin-top: 5px;
+}
+
+.schedule-cell {
+    padding: 8px;
+    border-right: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-height: 120px;
+    transition: background-color 0.2s ease;
+}
+
+.draft-cell {
+    background-color: #fff3cd !important;
+    border: 2px solid #ffc107;
+}
+
+.conflict-cell {
+    background-color: #f8d7da !important;
+    border: 2px solid #dc3545;
+}
+
+.draft-cell.conflict-cell {
+    background-color: #ffeaa7 !important;
+    border: 2px solid #e17055;
+}
+
+.course-select, .teacher-select {
+    padding: 6px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 100%;
+    font-size: 12px;
+    background-color: white;
+    margin-bottom: 4px;
+}
+
+.course-select:focus {
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+}
+
+.teacher-select {
+    border-color: #28a745;
+    font-size: 11px;
+}
+
+.teacher-select:focus {
+    border-color: #28a745;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(40,167,69,0.25);
+}
+
+.course-info {
+    margin-top: 5px;
+}
+
+.course-name {
+    font-size: 11px;
+    color: #007bff;
+    font-weight: 500;
+    margin-bottom: 2px;
+}
+
+.teacher-name {
+    font-size: 10px;
+    color: #6c757d;
+}
+
+.draft-indicator {
+    font-size: 9px;
+    color: #856404;
+    font-weight: 600;
+    background-color: #ffc107;
+    padding: 2px 6px;
+    border-radius: 10px;
+    text-align: center;
+    margin-top: 2px;
+}
+
+.conflict-alert {
+    margin-top: 5px;
+    padding: 6px;
+    background-color: #f8d7da;
+    border: 1px solid #dc3545;
+    border-radius: 4px;
+    font-size: 10px;
+    color: #721c24;
+}
+
+.conflict-alert strong {
+    display: block;
+    margin-bottom: 3px;
+    font-size: 9px;
+    font-weight: 700;
+}
+
+.conflict-message {
+    font-size: 9px;
+    line-height: 1.2;
+}
+
+.conflict-message-top {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 10px 15px;
+    margin: 15px 0;
+    border: 1px solid #dc3545;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+}
+
+.loading {
+    text-align: center;
+    padding: 50px;
+    font-size: 18px;
+    color: #6c757d;
+}
+
+@media (max-width: 1500px) {
+    .schedule-master-grid {
+        min-width: 1200px;
+    }
+
+    .grid-header, .grid-row {
+        grid-template-columns: 120px repeat(auto-fit, minmax(100px, 1fr));
+    }
+
+    .header-cell, .schedule-cell {
+        padding: 8px 5px;
+    }
+
+    .section-header {
+        font-size: 12px;
+    }
+}
+
+/* Timeslot Editor Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.timeslot-modal {
+    width: 90%;
+    max-width: 800px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #eee;
+    background-color: #f8f9fa;
+    border-radius: 8px 8px 0 0;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: #2c3e50;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #6c757d;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close-btn:hover {
+    color: #dc3545;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.timeslot-form-section {
+    margin-bottom: 30px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+.timeslot-form-section h4 {
+    margin-top: 0;
+    color: #2c3e50;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.form-field label {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.form-field input {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.form-field input:focus {
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.save-timeslot-btn {
+    padding: 10px 20px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.save-timeslot-btn:hover:not(:disabled) {
+    background-color: #218838;
+}
+
+.save-timeslot-btn:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+
+.cancel-edit-btn {
+    padding: 10px 20px;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.cancel-edit-btn:hover {
+    background-color: #545b62;
+}
+
+.existing-timeslots h4 {
+    margin-bottom: 15px;
+    color: #2c3e50;
+}
+
+.timeslots-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.timeslot-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+
+.timeslot-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.slot-name {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.slot-time {
+    color: #007bff;
+    font-size: 14px;
+}
+
+.slot-order {
+    color: #6c757d;
+    font-size: 12px;
+}
+
+.timeslot-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.edit-timeslot-btn {
+    padding: 6px 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.edit-timeslot-btn:hover:not(:disabled) {
+    background-color: #0056b3;
+}
+
+.delete-timeslot-btn {
+    padding: 6px 12px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.delete-timeslot-btn:hover:not(:disabled) {
+    background-color: #c82333;
+}
+
+.edit-timeslot-btn:disabled,
+.delete-timeslot-btn:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+
+/* ===== SEMESTER MANAGEMENT STYLES ===== */
+.semester-modal {
+    width: 90%;
+    max-width: 800px;
+}
+
+.semester-form-section {
+    margin-bottom: 30px;
+    padding: 20px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+
+.semester-form-section h4 {
+    margin-bottom: 15px;
+    color: #2c3e50;
+}
+
+.existing-semesters {
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+}
+
+.existing-semesters h4 {
+    margin-bottom: 15px;
+    color: #2c3e50;
+}
+
+.semesters-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.semester-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+
+.semester-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.semester-name {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.semester-dates {
+    color: #007bff;
+    font-size: 14px;
+}
+
+.semester-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.edit-semester-btn {
+    padding: 6px 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.edit-semester-btn:hover:not(:disabled) {
+    background-color: #0056b3;
+}
+
+.delete-semester-btn {
+    padding: 6px 12px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.delete-semester-btn:hover:not(:disabled) {
+    background-color: #c82333;
+}
+
+.save-semester-btn {
+    padding: 8px 16px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-right: 10px;
+}
+
+.save-semester-btn:hover:not(:disabled) {
+    background-color: #218838;
+}
+
+.save-semester-btn:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+
+.edit-semester-btn:disabled,
+.delete-semester-btn:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+
+/* ===== BULK GRADE SCHEDULING STYLES ===== */
+.bulk-grade-scheduling {
+    margin-top: 20px;
+}
+
+.bulk-schedule-grid {
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    min-width: 800px;
+}
+
+.bulk-cell {
+    padding: 8px;
+    border: 1px solid #ddd;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.bulk-cell select {
+    font-size: 12px;
+    padding: 4px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 100%;
+}
+
+.bulk-cell .course-info {
+    background-color: #f8f9fa;
+    padding: 3px 5px;
+    border-radius: 3px;
+    border-left: 3px solid #007bff;
+}
+
+.bulk-cell .course-name {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 10px;
+}
+
+.bulk-cell .teacher-name {
+    color: #666;
+    font-size: 9px;
+}
+
+.mode-select, .grade-select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    min-width: 180px;
+    background-color: white;
+}
+
+@media (max-width: 768px) {
+    .admin-scheduling-container {
+        padding: 10px;
+    }
+
+    .scheduling-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .timeslot-modal {
+        width: 95%;
+        margin: 10px;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .timeslot-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .timeslot-actions {
+        justify-content: center;
+    }
+
+    .semester-modal {
+        width: 95%;
+        margin: 10px;
+    }
+
+    .semester-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .semester-actions {
+        justify-content: center;
+    }
+}
+
+/* ===== BOX-STYLE TIMETABLE WITH DAY HEADERS ===== */
+.timetable-container {
+  margin-top: 20px;
+  font-size: 0.9em;
+}
+
+.timetable-wrapper {
+  overflow-x: auto;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #f9f9f9;
+}
+
+/* Header Row: Day Names */
+.timetable-header {
+  display: grid;
+  grid-template-columns: 1fr repeat(5, 1fr);
+  gap: 1px;
+  border-bottom: 2px solid #333;
+  background: #f0f0f0;
+}
+
+.day-header {
+  padding: 12px 8px;
+  text-align: center;
+  font-weight: bold;
+  background: #e0e0e0;
+  border-right: 1px solid #ccc;
+  font-size: 0.9rem;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Data Rows */
+.timetable-row {
+  display: grid;
+  grid-template-columns: 1fr repeat(5, 1fr);
+  gap: 1px;
+  border-bottom: 1px solid #ddd;
+}
+
+.time-cell {
+  padding: 12px 8px;
+  text-align: center;
+  font-weight: bold;
+  background: #f0f0f0;
+  border-right: 1px solid #ccc;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+}
+
+.day-cell {
+  padding: 8px;
+  border-right: 1px solid #ccc;
+  min-height: 60px;
+  background: white;
+  vertical-align: top;
+}
+
+.class-box {
+  margin: 4px 0;
+  padding: 8px;
+  background: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.9em;
+  line-height: 1.3;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.class-box strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #333;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.teacher-room {
+  font-size: 0.8em;
+  color: #666;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.teacher-room span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Optional: Alternate row shading */
+.timetable-row:nth-child(even) .time-cell {
+  background: #e8e8e8;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .timetable-header,
+  .timetable-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  .time-cell {
+    font-size: 0.8rem;
+    padding: 8px 4px;
+  }
+  .day-header {
+    font-size: 0.8rem;
+  }
+  .class-box {
+    padding: 6px;
+    font-size: 0.85em;
+  }
+}
+
+/* New styles for React warning fixes */
+.schedule-user-info {
+  padding: 20px;
+  margin-bottom: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.schedule-user-info-title {
+  margin: 0 0 15px 0;
+  color: #2c3e50;
+  font-size: 24px;
+}
+
+.schedule-user-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  font-size: 14px;
+}
+
+.bulk-no-selection {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+.bulk-scheduling-header {
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.bulk-scheduling-title {
+  margin: 0 0 10px 0;
+  color: #2c3e50;
+}
+
+.bulk-scheduling-subtitle {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.bulk-course-select {
+  margin-bottom: 5px;
+}
+
+.bulk-course-info {
+  font-size: 11px;
+  margin-top: 3px;
+}
+
+.bulk-actions {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.bulk-save-btn {
+  min-width: 180px;
+  margin-right: 10px;
+}
+
+.bulk-assignments-count {
+  margin-top: 10px;
+  color: #666;
+  font-size: 12px;
+}
+
+.schedule-days-checkboxes {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.day-checkbox-label {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+}
+
+.day-checkbox {
+  margin-right: 3px;
+}

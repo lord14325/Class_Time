@@ -1,0 +1,21 @@
+
+.stat-card {
+  background: #d4b983; 
+  flex: 1 1 140px; /* allows card to grow and shrink */
+  padding: 18px 24px;
+  border-radius: 12px;
+  min-width: 140px;
+  text-align: center;
+  color: #000;
+}
+
+.stat-title {
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+} 
